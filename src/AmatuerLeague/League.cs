@@ -26,23 +26,13 @@ namespace AmatuerLeague
     {
         public string Id { get; private set;}
         public string Name { get; set;}
-        public Player Commissioner { get; set;}
+        public Player Owner { get; set;}
         public SportTypes Sport {get; private set;}
-        public List<Team> Teams = new List<Team>();
 
-        public League() 
+        public League(SportTypes sport) 
         {
             Id = Guid.NewGuid().ToString();
-        }
-        
-        public void AddTeam(Team team)
-        {
-            Teams.Add(team);
-        }
-
-        public void RemoveTeam(Team team)
-        {
-            Teams.Remove(team);
+            Sport = sport;
         }
     }
 }

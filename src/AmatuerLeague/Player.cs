@@ -19,5 +19,10 @@ namespace AmatuerLeague
         public string LastName { get; set; }
         public GenderType Gender { get; set; }
         public DateTime DateOfBirth { get; set; }
+
+        public Player()
+        {
+            Id = Guid.NewGuid().ToString();
+        }
     }
 }

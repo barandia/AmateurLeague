@@ -12,15 +12,17 @@ namespace AmatuerLeague
         public string Id { get; private set;}
         public string Name { get; set;}
         // Todo: const or readonly? Need to figure out how to set this property only once.
-        public string LeagueId { get; set;}   
+        public string LeagueName { get; private set;}   
         public Player Captain { get; set;}
         public Player CoCaptain { get; set;} 
         public List<Player> Roster = new List<Player>();
 
-        public Team() 
+        public Team(string leagueName) 
         {
             Id = Guid.NewGuid().ToString();
+            LeagueName = leagueName;
         }
+
         public void AddPlayer(Player player) 
         {
             Roster.Add(player);
@@ -29,6 +31,11 @@ namespace AmatuerLeague
         public void RemovePlayer(Player player)
         {
             Roster.Remove(player);
+        }
+
+        public bool IsPlayerOnRoster(Player player)
+        {
+            return Roster.Contains(player);
         }
     }
 }
