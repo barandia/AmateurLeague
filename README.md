@@ -7,6 +7,7 @@ Key Features:
 * Manage Teams - Add, remove, and update teams. 
 
 To Do's
-| Tasks                                     | Status           | Done  |
-| ----------------------------------------- |:----------------:| -----:|
-| Create unit tests                         |                  | [ ]   |
+- [ ] Create unit test
+- [ ] CRUD for Team
+- [ ] CRUD for League
+- [ ] CRUD for Player
