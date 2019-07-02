@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace AmatuerLeague
 {
@@ -36,6 +37,11 @@ namespace AmatuerLeague
         public bool IsPlayerOnRoster(Player player)
         {
             return Roster.Contains(player);
+        }
+
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
         }
     }
 }

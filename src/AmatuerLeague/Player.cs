@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json;
 
 namespace AmatuerLeague
 {
@@ -23,6 +24,11 @@ namespace AmatuerLeague
         public Player()
         {
             Id = Guid.NewGuid().ToString();
+        }
+
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace AmatuerLeague
 {
@@ -9,8 +10,9 @@ namespace AmatuerLeague
      *  - CRUD for Team
      *  - CRUD for Player
      */
-    static class LeagueManager
+    public static class LeagueManager
     {
+        private static NLog.Logger LOGGER = NLog.LogManager.GetCurrentClassLogger();
         private static readonly Dictionary<string, League> Leagues = new Dictionary<string, League>();
         private static readonly Dictionary<string, Team> Teams = new Dictionary<string, Team>();
         private static readonly Dictionary<string, Player> Players = new Dictionary<string, Player>();
@@ -25,11 +27,23 @@ namespace AmatuerLeague
         /// <returns></returns>
         public static League CreateLeague(string name, Player owner, SportTypes sport)
         {
-            return new League(sport)
+            LOGGER.Debug($"Creating new {sport} league with name {name}");
+            if (Leagues.ContainsKey(name))
+            {
+                LOGGER.Debug($"Failed to create new {sport} league with name {name} - League name already exists");
+                return null;
+            }
+
+            var newLeague = new League(sport)
             {
                 Name = name,
                 Owner = owner
             };
+
+            LOGGER.Debug($"Successfully created new {sport} league with name {name}");
+            Leagues.Add(name, newLeague);
+
+            return newLeague;
         }
 
         /// <summary>
@@ -39,12 +53,15 @@ namespace AmatuerLeague
         /// <returns>The League to retrieve</returns>
         public static League GetLeague(string leagueName)
         {
+            LOGGER.Debug($"Retrieving league with name {leagueName}");
             if (Leagues.ContainsKey(leagueName))
             {
+                LOGGER.Debug($"Successfully retrieved league with name {leagueName}");
                 return Leagues[leagueName];
             } else
             {
-                throw new Exception($"Attempting to retreive {leagueName} league - does not exist");
+                LOGGER.Error($"Failed to retreive {leagueName} league - does not exist");
+                return null;
             }
         }
 
@@ -52,8 +69,17 @@ namespace AmatuerLeague
         /// Update league information
         /// </summary>
         /// <param name="league">League to update</param>
-        public static void UpdateLeague(League league)
+        public static void UpdateLeague(string leagueName, League league)
         {
+
+            LOGGER.Debug($"Updating league with name {league.Name}");
+            if (!string.Equals(leagueName, league.Name))
+            {
+                LOGGER.Debug($"Removing old league with name {leagueName}");
+                Leagues.Remove(leagueName);
+            }
+
+            LOGGER.Debug($"Successfully updated league with name {league.Name}");
             Leagues[league.Name] = league;
         }
 
@@ -71,8 +97,7 @@ namespace AmatuerLeague
                 result = Leagues.Remove(leagueName);
             } else
             {
-                // Log error
-                Console.WriteLine($"[Error] Attempting to delete {leagueName} league - does not exist");
+                LOGGER.Error($"Attempting to delete {leagueName} league - does not exist");
                 result = false;
             }
             return result;
@@ -90,6 +115,13 @@ namespace AmatuerLeague
         /// <returns>The newly created team</returns>
         public static Team CreateTeam(string teamName, string leagueName, Player captain, Player coCaptain = null)
         {
+            LOGGER.Debug($"Creating new Team with name {teamName} in league {leagueName}");
+            if (Teams.ContainsKey(teamName))
+            {
+                LOGGER.Debug($"Failed to create new Team with name {teamName} - Team name already exists");
+                return null;
+            }
+
             var newTeam = new Team(leagueName)
             {
                 Name = teamName,
@@ -97,6 +129,8 @@ namespace AmatuerLeague
                 CoCaptain = coCaptain
             };
 
+            LOGGER.Debug($"Successfully created new Team with name {teamName} in league {leagueName}");
+            Teams.Add(teamName, newTeam);
             return newTeam;
         }
 
@@ -107,13 +141,16 @@ namespace AmatuerLeague
         /// <returns></returns>
         public static Team GetTeam(string teamName)
         {
+            LOGGER.Debug($"Retrieving Team: {teamName}");
             if (Teams.ContainsKey(teamName))
             {
+                LOGGER.Debug($"Retrieving Team: {Teams[teamName]}");
                 return Teams[teamName];
             }
             else
             {
-                throw new Exception($"Attempting to retreive {teamName} team - does not exist");
+                LOGGER.Debug($"Failed to retreive team {teamName} - does not exist");
+                throw new Exception($"Failed to retreive {teamName} team - does not exist");
             }
         }
 
@@ -123,6 +160,7 @@ namespace AmatuerLeague
         /// <param name="team">The team to update</param>
         public static void UpdateTeam(Team team)
         {
+            LOGGER.Debug($"Upating Team: {team}");
             Teams[team.Name] = team;
         }
 
@@ -133,15 +171,16 @@ namespace AmatuerLeague
         /// <returns>true if the deletion was successfull, otherwise false</returns>
         public static bool DeleteTeam(string teamName)
         {
+            LOGGER.Debug($"Deleting Team: {teamName}");
             bool result;
             if (Teams.ContainsKey(teamName))
             {
+                LOGGER.Debug($"Deleting Team: {Teams[teamName]}");
                 result = Teams.Remove(teamName);
             }
             else
             {
-                // Log error
-                Console.WriteLine($"[Error] Attempting to delete {teamName} team - does not exist");
+                LOGGER.Error($"Failed to delete {teamName} team - does not exist");
                 result = false;
             }
 
@@ -156,22 +195,29 @@ namespace AmatuerLeague
         /// <returns>true if player</returns>
         public static bool AddPlayerToTeam(string teamName, Player player)
         {
+            LOGGER.Debug($"Adding player {player} to team {teamName}");
             var result = true;
             if (Teams.ContainsKey(teamName))
             {
                 if (!Teams[teamName].IsPlayerOnRoster(player))
                 {
+                    LOGGER.Debug($"Successfully added player {player} to team {teamName}");
                     Teams[teamName].AddPlayer(player);
+
+                    if (!Players.ContainsKey(player.EmailAddress))
+                    {
+                        Players.Add(player.EmailAddress, player);
+                    }
                 }
                 else
                 {
-                    Console.WriteLine($"[Error] Failed to add player {player.EmailAddress} to {teamName} team - player already on the roster");
+                    LOGGER.Error($"Failed to add player {player} to team {teamName} - player already on the roster");
                     result = false;
                 }
             }
             else
             {
-                Console.WriteLine($"[Error] Failed to add player {player.EmailAddress} to {teamName} team - team does not exist");
+                LOGGER.Error($"Failed to add player {player} to team {teamName} - team does not exist");
                 result = false;
             }
 
@@ -186,22 +232,24 @@ namespace AmatuerLeague
         /// <returns></returns>
         public static bool RemovePlayerFromTeam(string teamName, Player player)
         {
+            LOGGER.Debug($"Removing player {player} from team {teamName}");
             var result = true;
             if (Teams.ContainsKey(teamName))
             {
                 if (Teams[teamName].IsPlayerOnRoster(player))
                 {
                     Teams[teamName].RemovePlayer(player);
+                    LOGGER.Debug($"Successfully removed player {player} from team {teamName}");
                 }
                 else
                 {
-                    Console.WriteLine($"[Error] Failed to remove player {player.EmailAddress} to {teamName} team - player is not on the roster");
+                    LOGGER.Error($"Failed to remove player {player.EmailAddress} to {teamName} team - player is not on the roster");
                     result = false;
                 }
             }
             else
             {
-                Console.WriteLine($"[Error] Failed to remove player {player.EmailAddress} to {teamName} team - team does not exist");
+                LOGGER.Error($"Failed to remove player {player.EmailAddress} to {teamName} team - team does not exist");
                 result = false;
             }
 
@@ -221,7 +269,19 @@ namespace AmatuerLeague
         /// <returns></returns>
         public static Player CreatePlayer(string emailAddress, string firstName, string lastName, GenderType gender, DateTime dateOfBirth)
         {
-            return new Player()
+            LOGGER.Debug($"Creating new player with email address {emailAddress}");
+            if (string.IsNullOrEmpty(emailAddress))
+            {
+                LOGGER.Debug($"Failed to create new player - email address cannot be null nor empty");
+                return null;
+            }
+            else if (Players.ContainsKey(emailAddress))
+            {
+                LOGGER.Debug($"Failed to create new player - email address already exists");
+                return null;
+            }
+
+            var newPlayer = new Player()
             {
                 EmailAddress = emailAddress,
                 FirstName = firstName,
@@ -229,6 +289,10 @@ namespace AmatuerLeague
                 Gender = gender,
                 DateOfBirth = dateOfBirth
             };
+
+            LOGGER.Debug($"Created new player {newPlayer}");
+            Players.Add(emailAddress, newPlayer);
+            return newPlayer;
         }
 
 
@@ -239,13 +303,16 @@ namespace AmatuerLeague
         /// <returns>player, otherwise throws an exception</returns>
         public static Player GetPlayer(string emailAddress)
         {
+            LOGGER.Debug($"Retrieving player with email address {emailAddress}");
             if (Players.ContainsKey(emailAddress))
             {
+                LOGGER.Debug($"Successfully retrieved player with email address {emailAddress}: Players[emailAddress]");
                 return Players[emailAddress];
             }
             else
             {
-                throw new Exception($"Attempting to retreive player with email address {emailAddress} - does not exist");
+                LOGGER.Error($"Failed to retreive player with email address {emailAddress} - does not exist");
+                return null;
             }
         }
 
@@ -255,6 +322,7 @@ namespace AmatuerLeague
         /// <param name="player"></param>
         public static void UpdatePlayer(Player player)
         {
+            LOGGER.Debug($"Updating player {player}");
             Players[player.EmailAddress] = player;
         }
 
@@ -265,17 +333,17 @@ namespace AmatuerLeague
         /// <returns>true if successfully deleted, otherwise returns false</returns>
         public static bool DeletePlayer(string emailAddress)
         {
+            LOGGER.Debug($"Deleting player with email address {emailAddress}");
             bool result;
             if (Players.ContainsKey(emailAddress))
             {
                 // To do - check if player is on a roster of any teams. If yes, do not allow to delete player
-
+                LOGGER.Debug($"Successfully deleted player with email address {emailAddress}");
                 result = Players.Remove(emailAddress);
             }
             else
             {
-                // Log error
-                Console.WriteLine($"[Error] Attempting to delete player with email address {emailAddress} - does not exist");
+                LOGGER.Error($"Failed to delete player with email address {emailAddress} - does not exist");
                 result = false;
             }
 

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace AmatuerLeague
 {
@@ -22,7 +22,7 @@ namespace AmatuerLeague
     /**
      * A league can have many teams
      */
-    class League
+    public class League
     {
         public string Id { get; private set;}
         public string Name { get; set;}
@@ -31,8 +31,13 @@ namespace AmatuerLeague
 
         public League(SportTypes sport) 
         {
-            Id = Guid.NewGuid().ToString();
+            //Id = Guid.NewGuid().ToString();
             Sport = sport;
+        }
+
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
         }
     }
 }
