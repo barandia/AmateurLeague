@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AmatuerLeague\AmatuerLeague.csproj" />
+    <ProjectReference Include="..\..\src\AmateurLeague\AmateurLeague.csproj" />
   </ItemGroup>
 
 </Project>

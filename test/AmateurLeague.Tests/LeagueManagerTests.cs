@@ -3,7 +3,7 @@ using Xunit;
 using System.Collections;
 
 
-namespace AmatuerLeague.Tests
+namespace AmateurLeague.Tests
 {
     public class LeagueManagerTests
     {
@@ -89,12 +89,12 @@ namespace AmatuerLeague.Tests
         {
             var newTeam = GenerateTeam();
             
-            Assert.NotNull(LeagueManager.CreateTeam(newTeam.Name, newTeam.LeagueName, newTeam.Captain, newTeam.CoCaptain));
+            Assert.NotNull(LeagueManager.CreateTeam(newTeam.Name, newTeam.LeagueName, newTeam.CaptainEmailAddress, newTeam.CoCaptainEmailAddress));
             var result = LeagueManager.GetTeam(newTeam.Name);
             Assert.Equal(newTeam.Name, result.Name);
             Assert.Equal(newTeam.LeagueName, result.LeagueName);
-            Assert.Equal(newTeam.Captain, result.Captain);
-            Assert.Equal(newTeam.CoCaptain, result.CoCaptain);
+            Assert.Equal(newTeam.CaptainEmailAddress, result.CaptainEmailAddress);
+            Assert.Equal(newTeam.CoCaptainEmailAddress, result.CoCaptainEmailAddress);
         }
 
         [Fact]
@@ -102,15 +102,15 @@ namespace AmatuerLeague.Tests
         {
             var newTeam = GenerateTeam();
 
-            Assert.NotNull(LeagueManager.CreateTeam(newTeam.Name, newTeam.LeagueName, newTeam.Captain, newTeam.CoCaptain));
-            Assert.Null(LeagueManager.CreateTeam(newTeam.Name, newTeam.LeagueName, newTeam.Captain, newTeam.CoCaptain));
+            Assert.NotNull(LeagueManager.CreateTeam(newTeam.Name, newTeam.LeagueName, newTeam.CaptainEmailAddress, newTeam.CoCaptainEmailAddress));
+            Assert.Null(LeagueManager.CreateTeam(newTeam.Name, newTeam.LeagueName, newTeam.CaptainEmailAddress, newTeam.CoCaptainEmailAddress));
         }
 
         [Fact]
         public void AddNewPlayerToTeamTest()
         {
             var newTeam = GenerateTeam();
-            Assert.NotNull(LeagueManager.CreateTeam(newTeam.Name, newTeam.LeagueName, newTeam.Captain, newTeam.CoCaptain));
+            Assert.NotNull(LeagueManager.CreateTeam(newTeam.Name, newTeam.LeagueName, newTeam.CaptainEmailAddress, newTeam.CoCaptainEmailAddress));
 
             var newPlayer = GeneratePlayer();
             Assert.True(LeagueManager.AddPlayerToTeam(newTeam.Name, newPlayer));
@@ -120,7 +120,7 @@ namespace AmatuerLeague.Tests
         public void AddExistingPlayerToTeamTest()
         {
             var newTeam = GenerateTeam();
-            Assert.NotNull(LeagueManager.CreateTeam(newTeam.Name, newTeam.LeagueName, newTeam.Captain, newTeam.CoCaptain));
+            Assert.NotNull(LeagueManager.CreateTeam(newTeam.Name, newTeam.LeagueName, newTeam.CaptainEmailAddress, newTeam.CoCaptainEmailAddress));
 
             var newPlayer = GeneratePlayer();
             Assert.True(LeagueManager.AddPlayerToTeam(newTeam.Name, newPlayer));
@@ -138,7 +138,7 @@ namespace AmatuerLeague.Tests
         public void RemovePlayerFromTeamTest()
         {
             var newTeam = GenerateTeam();
-            Assert.NotNull(LeagueManager.CreateTeam(newTeam.Name, newTeam.LeagueName, newTeam.Captain, newTeam.CoCaptain));
+            Assert.NotNull(LeagueManager.CreateTeam(newTeam.Name, newTeam.LeagueName, newTeam.CaptainEmailAddress, newTeam.CoCaptainEmailAddress));
 
             var newPlayer = GeneratePlayer();
             Assert.True(LeagueManager.AddPlayerToTeam(newTeam.Name, newPlayer));
@@ -158,12 +158,11 @@ namespace AmatuerLeague.Tests
         public void CreateNewLeagueTest()
         {
             var expected = GenerateLeague();
-            Assert.NotNull(LeagueManager.CreateLeague(expected.Name, expected.Owner, expected.Sport));
+            Assert.NotNull(LeagueManager.CreateLeague(expected.Name, expected.Sport));
 
             var actual = LeagueManager.GetLeague(expected.Name);
             Assert.NotNull(actual);
             Assert.Equal(expected.Name, actual.Name);
-            Assert.Equal(expected.Owner, actual.Owner);
             Assert.Equal(expected.Sport, actual.Sport);
         }
 
@@ -171,8 +170,8 @@ namespace AmatuerLeague.Tests
         public void CreateNewLeaguWithNameExistTest()
         {
             var expected = GenerateLeague();
-            Assert.NotNull(LeagueManager.CreateLeague(expected.Name, expected.Owner, expected.Sport));
-            Assert.Null(LeagueManager.CreateLeague(expected.Name, expected.Owner, expected.Sport));
+            Assert.NotNull(LeagueManager.CreateLeague(expected.Name, expected.Sport));
+            Assert.Null(LeagueManager.CreateLeague(expected.Name, expected.Sport));
         }
 
         [Fact]
@@ -185,7 +184,7 @@ namespace AmatuerLeague.Tests
         public void UpdateLeagueTest()
         {
             var newLeague = GenerateLeague();
-            Assert.NotNull(LeagueManager.CreateLeague(newLeague.Name, newLeague.Owner, newLeague.Sport));
+            Assert.NotNull(LeagueManager.CreateLeague(newLeague.Name, newLeague.Sport));
 
             var expected = LeagueManager.GetLeague(newLeague.Name);
             Assert.NotNull(expected);
@@ -211,14 +210,13 @@ namespace AmatuerLeague.Tests
         private Team GenerateTeam() => new Team(Guid.NewGuid().ToString())
         {
             Name = Guid.NewGuid().ToString(),
-            Captain = GeneratePlayer(),
-            CoCaptain = GeneratePlayer()
+            CaptainEmailAddress = GeneratePlayer().EmailAddress,
+            CoCaptainEmailAddress = GeneratePlayer().EmailAddress
         };
 
-        private League GenerateLeague() => new League((SportTypes) new Random().Next(0, Enum.GetValues(typeof(SportTypes)).Length))
+        private League GenerateLeague() => new League(new Sport("Basketball", SportGenderTypes.Men))
         {
-            Name = Guid.NewGuid().ToString(),
-            Owner = GeneratePlayer()
+            Name = Guid.NewGuid().ToString()
         };
     }
 }

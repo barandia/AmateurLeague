@@ -5,11 +5,11 @@ VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{92D0E04F-7892-443D-AF2D-18864AA6B844}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmatuerLeague", "src\AmatuerLeague\AmatuerLeague.csproj", "{F02B5802-4765-4522-80CF-D82BDE5EA145}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmateurLeague", "src\AmateurLeague\AmateurLeague.csproj", "{F02B5802-4765-4522-80CF-D82BDE5EA145}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{61CCE7BE-137D-4DF7-9284-0032B6FD0C66}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmatuerLeague.Tests", "test\AmatuerLeague.Tests\AmatuerLeague.Tests.csproj", "{5E2CA0E9-CEDF-4549-830D-0FBCC32A5065}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmateurLeague.Tests", "test\AmateurLeague.Tests\AmateurLeague.Tests.csproj", "{5E2CA0E9-CEDF-4549-830D-0FBCC32A5065}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
