@@ -1,37 +1,26 @@
 ﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace AmateurLeague
 {
-    public enum SportTypes
-    {
-        BasketballWomen,
-        BasketballMen,
-        BasketballCoed,
-        BaseballWomen,
-        BaseballMen,
-        BaseballCoed,
-        SoccerWomen,
-        SoccerMen,
-        SoccerCoed,
-        FlagFootballWomen,
-        FlagFootballMen,
-        FlagFootballCoed,
-    }
-
     /**
      * A league can have many teams
      */
     public class League
     {
-        public string Id { get; private set;}
         public string Name { get; set;}
-        public Sport Sport {get; private set;}
+        public Sport Sport {get; set;}
+        public ICollection<Team> Teams { get; set; }
 
-        public League(Sport sport) 
+        public void AddTeam(Team team)
         {
-            //Id = Guid.NewGuid().ToString();
-            Sport = sport;
+            Teams.Add(team);
+        }
+
+        public void RemoveTeam(Team team)
+        {
+            Teams.Remove(team);
         }
 
         public override string ToString()

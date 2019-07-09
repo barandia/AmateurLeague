@@ -10,33 +10,54 @@ namespace AmateurLeague
      */
     public class Team
     {
-        public string Id { get; private set;}
         public string Name { get; set;}
-        // Todo: const or readonly? Need to figure out how to set this property only once.
-        public string LeagueName { get; private set;}   
-        public string CaptainEmailAddress { get; set;}
-        public string CoCaptainEmailAddress { get; set;} 
-        public List<string> Roster = new List<string>();
+        public League League { get; set; }
+        public ICollection<TeamPlayer> TeamPlayers { get; set; }
 
-        public Team(string leagueName) 
+        public void AddPlayer(Player playerToAdd)
         {
-            Id = Guid.NewGuid().ToString();
-            LeagueName = leagueName;
+            if (TeamPlayers == null)
+            {
+                TeamPlayers = new List<TeamPlayer>();
+            }
+
+            TeamPlayers.Add(new TeamPlayer() { PlayerId = playerToAdd.EmailAddress, TeamId = Name });
         }
 
-        public void AddPlayer(string emailAddress) 
+        public void RemovePlayer(Player playerToRemove)
         {
-            Roster.Add(emailAddress);
-        }
+            if (TeamPlayers != null)
+            {
+                TeamPlayer teamPlayerToRemove = null;
+                foreach(TeamPlayer teamPlayer in TeamPlayers)
+                {
+                    if (teamPlayer.PlayerId.ToLower().Equals(playerToRemove.EmailAddress.ToLower()))
+                    {
+                        teamPlayerToRemove = teamPlayer;
+                        break;
+                    }
+                }
 
-        public void RemovePlayer(string emailAddress)
-        {
-            Roster.Remove(emailAddress);
+                if (teamPlayerToRemove != null)
+                {
+                    TeamPlayers.Remove(teamPlayerToRemove);
+                }
+            }
         }
-
         public bool IsPlayerOnRoster(string emailAddress)
         {
-            return Roster.Contains(emailAddress);
+            if (TeamPlayers != null)
+            {
+                foreach (TeamPlayer teamPlayer in TeamPlayers)
+                {
+                    if (teamPlayer.PlayerId.ToLower().Equals(emailAddress.ToLower()))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         public override string ToString()

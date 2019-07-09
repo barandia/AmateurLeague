@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -15,7 +16,6 @@ namespace AmateurLeague
      */
     public class Player
     {
-        public string Id { get; private set; }
         public string EmailAddress { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -23,10 +23,7 @@ namespace AmateurLeague
         public GenderType Gender { get; set; }
         public DateTime DateOfBirth { get; set; }
 
-        public Player()
-        {
-            Id = Guid.NewGuid().ToString();
-        }
+        public ICollection<TeamPlayer> TeamPlayers { get; set; }
 
         public override string ToString()
         {

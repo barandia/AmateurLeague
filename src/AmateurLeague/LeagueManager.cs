@@ -48,9 +48,10 @@ namespace AmateurLeague
                 return null;
             }
 
-            var newLeague = new League(sport)
+            var newLeague = new League()
             {
-                Name = leagueNameToLower
+                Name = leagueNameToLower,
+                Sport = sport
             };
 
             LOGGER.Debug($"Successfully created new {sport} league with name {leagueNameToLower}");
@@ -143,24 +144,23 @@ namespace AmateurLeague
         /// <param name="captain">Captain of this team (owner)</param>
         /// <param name="coCaptain">Co-Captain of this team (co-owner)</param>
         /// <returns>The newly created team</returns>
-        public static Team CreateTeam(string teamName, string leagueName, string captainEmailAddress, string coCaptainEmailAddress = null)
+        public static Team CreateTeam(string teamName, League league)
         {
             var teamNameToLower = teamName.ToLower();
-            LOGGER.Debug($"Creating new Team with name {teamNameToLower} in league {leagueName}");
+            LOGGER.Debug($"Creating new Team with name {teamNameToLower} in league {league}");
             if (Teams.ContainsKey(teamNameToLower))
             {
                 LOGGER.Debug($"Failed to create new Team with name {teamNameToLower} - Team name already exists");
                 return null;
             }
 
-            var newTeam = new Team(leagueName)
+            var newTeam = new Team()
             {
                 Name = teamNameToLower,
-                CaptainEmailAddress = captainEmailAddress,
-                CoCaptainEmailAddress = coCaptainEmailAddress
+                League = league
             };
 
-            LOGGER.Debug($"Successfully created new Team with name {teamNameToLower} in league {leagueName}");
+            LOGGER.Debug($"Successfully created new Team with name {teamNameToLower} in league {league}");
             Teams.Add(teamNameToLower, newTeam);
             return newTeam;
         }
@@ -249,7 +249,7 @@ namespace AmateurLeague
                 if (!Teams[teamNameToLower].IsPlayerOnRoster(player.EmailAddress))
                 {
                     LOGGER.Debug($"Successfully added player {player} to team {teamNameToLower}");
-                    Teams[teamNameToLower].AddPlayer(player.EmailAddress);
+                    Teams[teamNameToLower].AddPlayer(player);
 
                     if (!Players.ContainsKey(player.EmailAddress))
                     {
@@ -286,7 +286,7 @@ namespace AmateurLeague
             {
                 if (Teams[teamNameToLower].IsPlayerOnRoster(player.EmailAddress))
                 {
-                    Teams[teamNameToLower].RemovePlayer(player.EmailAddress);
+                    Teams[teamNameToLower].RemovePlayer(player);
                     LOGGER.Debug($"Successfully removed player {player} from team {teamNameToLower}");
                 }
                 else

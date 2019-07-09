@@ -129,7 +129,7 @@ namespace AmateurLeague
                     return;
                 }
 
-                LeagueManager.CreateTeam(teamName, leagueSelected.Name, captainsEmailAddress);
+                LeagueManager.CreateTeam(teamName, leagueSelected);
             }
             catch (Exception e)
             {
