@@ -1,12 +1,17 @@
-﻿using System;
+﻿using AmateurLeague.Entity;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AmateurLeague
 {
     class AmateurLeagueMain
     {
+        private static readonly NLog.Logger LOGGER = NLog.LogManager.GetCurrentClassLogger();
+
         static void Main(string[] args)
         {
+            LOGGER.Info("Starting Sports League Manager...");
             Console.WriteLine("Welcome to AmatuerLeague Manager!");
 
             var mainMenuOptions = new List<string>() { "Exit",
@@ -33,6 +38,7 @@ namespace AmateurLeague
                 {
                     case "0":
                         Console.WriteLine("Thank you for using Amateur League Manager");
+                        LOGGER.Info("Shutting down Sports League Manager...");
                         return;
                     case "1": // create new league
                         CreateNewLeague();
@@ -77,20 +83,21 @@ namespace AmateurLeague
                 }
 
                 Console.WriteLine("Choose league type: ");
-                for (int i = 0; i < LeagueManager.Sports.Count; i++)
+                var sports = LeagueManager.GetAllSports().ToList();
+                for (int i = 0; i < sports.Count; i++)
                 {
-                    Console.WriteLine($"\t{i}. {LeagueManager.Sports[i].Name} - {LeagueManager.Sports[i].Type}");
+                    Console.WriteLine($"\t{i}. {sports[i].Name} - {sports[i].Type}");
                 }
 
                 Console.Write("Sports: ");
                 int sportChoice = int.Parse(Console.ReadLine().Trim());
-                if (sportChoice < 0 || sportChoice >= LeagueManager.Sports.Count)
+                if (sportChoice < 0 || sportChoice >= sports.Count)
                 {
                     Console.Error.WriteLine($"Failed to create a league - invalid sports choice - {sportChoice}");
                     return;
                 }
 
-                LeagueManager.CreateLeague(name, LeagueManager.Sports[sportChoice]);
+                LeagueManager.CreateLeague(name, sports[sportChoice]);
             }
             catch (Exception e)
             {
@@ -102,7 +109,7 @@ namespace AmateurLeague
         {
             try
             {
-                var leagues = LeagueManager.GetAllLeagues();
+                var leagues = LeagueManager.GetAllLeagues().ToList();
                 if (leagues.Count == 0)
                 {
                     Console.Error.WriteLine($"Failed to add a new team - no leagues available");
@@ -112,22 +119,22 @@ namespace AmateurLeague
                 var teamName = Console.ReadLine();
 
                 Console.WriteLine("Choose league to join: ");
-                League leagueSelected = PrintOptionsAndSelect(leagues, new League[leagues.Count]);
+                League leagueSelected = PrintOptionsAndSelect(leagues);
                 
                 if(leagueSelected == null)
                 {
                     return;
                 }
 
-                Console.Write("Team captain's email address: ");
-                var captainsEmailAddress = Console.ReadLine();
+                //Console.Write("Team captain's email address: ");
+                //var captainsEmailAddress = Console.ReadLine();
 
-                // check if email address exists
-                if (!LeagueManager.IsPlayerExists(captainsEmailAddress))
-                {
-                    Console.Error.WriteLine($"Failed to create team - player does not exist - {captainsEmailAddress}");
-                    return;
-                }
+                //// check if email address exists
+                //if (!LeagueManager.IsPlayerExists(captainsEmailAddress))
+                //{
+                //    Console.Error.WriteLine($"Failed to create team - player does not exist - {captainsEmailAddress}");
+                //    return;
+                //}
 
                 LeagueManager.CreateTeam(teamName, leagueSelected);
             }
@@ -174,24 +181,24 @@ namespace AmateurLeague
             try
             {
                 // select a team - show all teams
-                var allTeams = LeagueManager.GetAllTeams();
+                var allTeams = LeagueManager.GetAllTeams().ToList();
                 if (allTeams.Count == 0)
                 {
                     Console.Error.WriteLine("Failed to add player to a team - no available teams");
                     return;
                 }
                 Console.WriteLine("Choose team: ");
-                Team teamToUpdate = PrintOptionsAndSelect(allTeams, new Team[allTeams.Count]);
+                Team teamToUpdate = PrintOptionsAndSelect(allTeams);
 
                 // select player to add - show all players
-                var allPlayers = LeagueManager.GetAllPlayers();
+                var allPlayers = LeagueManager.GetAllPlayers().ToList();
                 if (allPlayers.Count == 0)
                 {
                     Console.Error.WriteLine("Failed to add player to a team - no available players to add");
                     return;
                 }
                 Console.WriteLine($"Choose player to add to team {teamToUpdate.Name}: ");
-                Player playerToAdd = PrintOptionsAndSelect(allPlayers, new Player[allPlayers.Count]);
+                Player playerToAdd = PrintOptionsAndSelect(allPlayers);
 
                 if (teamToUpdate != null && playerToAdd != null)
                 {
@@ -207,29 +214,9 @@ namespace AmateurLeague
             
         }
 
-        private static T PrintOptionsAndSelect<T>(Dictionary<string, T> all, T[] options)
-        {
-            all.Values.CopyTo(options, 0);
-            for (int i = 0; i < options.Length; i++)
-            {
-                Console.WriteLine($"\t{i}. {options[i]}");
-            }
-
-            Console.Write("selection: ");
-            int choice = int.Parse(Console.ReadLine().Trim());
-
-            if (choice < 0 || choice >= options.Length)
-            {
-                Console.Error.WriteLine($"Invalid selection - {choice}");
-                return default;
-            }
-
-            return options[choice];
-        }
-
         private static void PrintAllLeagues()
         {
-            var allLeagues = LeagueManager.GetAllLeagues();
+            var allLeagues = LeagueManager.GetAllLeagues().ToList();
             if (allLeagues.Count == 0)
             {
                 Console.WriteLine("No leagues has been created");
@@ -237,7 +224,7 @@ namespace AmateurLeague
             else
             {
                 Console.WriteLine("Leagues: ");
-                foreach (var league in allLeagues.Values)
+                foreach (var league in allLeagues)
                 {
                     Console.WriteLine($"\t{league}");
                 }
@@ -246,7 +233,7 @@ namespace AmateurLeague
 
         private static void PrintAllTeams()
         {
-            var allTeams = LeagueManager.GetAllTeams();
+            var allTeams = LeagueManager.GetAllTeams().ToList();
             if (allTeams.Count == 0)
             {
                 Console.WriteLine("No teams has been created");
@@ -254,7 +241,7 @@ namespace AmateurLeague
             else
             {
                 Console.WriteLine("Teams: ");
-                foreach (var team in allTeams.Values)
+                foreach (var team in allTeams)
                 {
                     Console.WriteLine($"\t{team}");
                 }
@@ -263,7 +250,7 @@ namespace AmateurLeague
 
         private static void PrintAllPlayers()
         {
-            var allPlayers = LeagueManager.GetAllPlayers();
+            var allPlayers = LeagueManager.GetAllPlayers().ToList();
             if (allPlayers.Count == 0)
             {
                 Console.WriteLine("No players has been created");
@@ -271,11 +258,30 @@ namespace AmateurLeague
             else
             {
                 Console.WriteLine("Players: ");
-                foreach (var player in allPlayers.Values)
+                foreach (var player in allPlayers)
                 {
                     Console.WriteLine($"\t{player}");
                 }
             }
+        }
+
+        private static T PrintOptionsAndSelect<T>(List<T> options)
+        {
+            for (int i = 0; i < options.Count; i++)
+            {
+                Console.WriteLine($"\t{i}. {options[i]}");
+            }
+
+            Console.Write("selection: ");
+            int choice = int.Parse(Console.ReadLine().Trim());
+
+            if (choice < 0 || choice >= options.Count)
+            {
+                Console.Error.WriteLine($"Invalid selection - {choice}");
+                return default;
+            }
+
+            return options[choice];
         }
     }
 }

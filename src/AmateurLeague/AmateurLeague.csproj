@@ -1,8 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
+    <ApplicationIcon />
+    <StartupObject />
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +16,8 @@
     <Compile Remove="Migrations\20190709081843_RemoveIdsAndAddReq.Designer.cs" />
     <Compile Remove="Migrations\20190709081927_RemoveIdsAndAddReq.cs" />
     <Compile Remove="Migrations\20190709081927_RemoveIdsAndAddReq.Designer.cs" />
+    <Compile Remove="Migrations\20190723060824_UpdateStructure.cs" />
+    <Compile Remove="Migrations\20190723060824_UpdateStructure.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,4 +34,7 @@
     <PackageReference Include="NLog.Extensions.Logging" Version="1.5.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\..\config\NLog.config" CopyToOutputDirectory="Always" />
+  </ItemGroup>
 </Project>

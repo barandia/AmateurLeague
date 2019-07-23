@@ -1,6 +1,9 @@
-﻿using System;
+﻿using AmateurLeague.Entity;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace AmateurLeague
 {
@@ -13,23 +16,8 @@ namespace AmateurLeague
     public static class LeagueManager
     {
         private static readonly NLog.Logger LOGGER = NLog.LogManager.GetCurrentClassLogger();
-        private static readonly Dictionary<string, League> Leagues = new Dictionary<string, League>();
-        private static readonly Dictionary<string, Team> Teams = new Dictionary<string, Team>();
-        private static readonly Dictionary<string, Player> Players = new Dictionary<string, Player>();
+        private static readonly AmateurLeagueContext db = new AmateurLeagueContext();
 
-
-        public static List<Sport> Sports { get; } = new List<Sport>() {new Sport("Basketball", SportGenderTypes.Men),
-                                                                        new Sport("Basketball", SportGenderTypes.Women),
-                                                                        new Sport("Basketball", SportGenderTypes.Coed),
-                                                                        new Sport("Baseball", SportGenderTypes.Men),
-                                                                        new Sport("Baseball", SportGenderTypes.Women),
-                                                                        new Sport("Baseball", SportGenderTypes.Coed),
-                                                                        new Sport("Soccer", SportGenderTypes.Men),
-                                                                        new Sport("Soccer", SportGenderTypes.Women),
-                                                                        new Sport("Soccer", SportGenderTypes.Coed),
-                                                                        new Sport("Flag Football", SportGenderTypes.Men),
-                                                                        new Sport("Flag Football", SportGenderTypes.Women),
-                                                                        new Sport("Flag Football", SportGenderTypes.Coed)};
         #region Methods for League
         /// <summary>
         /// Create a new league
@@ -40,22 +28,23 @@ namespace AmateurLeague
         /// <returns></returns>
         public static League CreateLeague(string leagueName, Sport sport)
         {
-            var leagueNameToLower = leagueName.ToLower();
-            LOGGER.Debug($"Creating new {sport} league with name {leagueNameToLower}");
-            if (Leagues.ContainsKey(leagueNameToLower))
+            LOGGER.Debug($"Creating new {sport} league with name {leagueName}");
+            if (IsLeagueExists(leagueName))
             {
-                LOGGER.Debug($"Failed to create new {sport} league with name {leagueNameToLower} - League name already exists");
+                LOGGER.Debug($"Failed to create new {sport} league with name {leagueName} - League name already exists");
                 return null;
             }
 
             var newLeague = new League()
             {
-                Name = leagueNameToLower,
+                Name = leagueName,
                 Sport = sport
             };
 
-            LOGGER.Debug($"Successfully created new {sport} league with name {leagueNameToLower}");
-            Leagues.Add(leagueNameToLower, newLeague);
+            LOGGER.Debug($"Successfully created new {sport} league with name {leagueName}");
+            db.Leagues.Add(newLeague);
+            db.SaveChanges();
+            //Leagues.Add(leagueNameToLower, newLeague);
 
             return newLeague;
         }
@@ -67,15 +56,14 @@ namespace AmateurLeague
         /// <returns>The League to retrieve</returns>
         public static League GetLeague(string leagueName)
         {
-            var leagueNameToLower = leagueName.ToLower();
-            LOGGER.Debug($"Retrieving league with name {leagueNameToLower}");
-            if (Leagues.ContainsKey(leagueNameToLower))
+            LOGGER.Debug($"Retrieving league with name {leagueName}");
+            if (IsLeagueExists(leagueName))
             {
-                LOGGER.Debug($"Successfully retrieved league with name {leagueNameToLower}");
-                return Leagues[leagueNameToLower];
+                LOGGER.Debug($"Successfully retrieved league with name {leagueName}");
+                return db.Leagues.Find(leagueName);
             } else
             {
-                LOGGER.Error($"Failed to retreive {leagueNameToLower} league - does not exist");
+                LOGGER.Error($"Failed to retreive {leagueName} league - does not exist");
                 return null;
             }
         }
@@ -84,33 +72,26 @@ namespace AmateurLeague
         /// Retrieve all leagues
         /// </summary>
         /// <returns>All leagues</returns>
-        public static Dictionary<string, League> GetAllLeagues()
+        public static IEnumerable<League> GetAllLeagues()
         {
-            return Leagues;
+            return db.Leagues.Include(league => league.Sport);
         }
 
         public static bool IsLeagueExists(string leagueName)
         {
-            return Leagues.ContainsKey(leagueName);
+            return db.Leagues.Find(leagueName) != null;
         }
 
         /// <summary>
         /// Update league information
         /// </summary>
         /// <param name="league">League to update</param>
-        public static void UpdateLeague(string leagueName, League league)
+        public static void UpdateLeague(League league)
         {
-            var leagueNameToLower = leagueName.ToLower();
-            var newLeagueNameToLower = league.Name.ToLower();
-            LOGGER.Debug($"Updating league with name {newLeagueNameToLower}");
-            if (!string.Equals(leagueNameToLower, newLeagueNameToLower))
-            {
-                LOGGER.Debug($"Removing old league with name {leagueNameToLower}");
-                Leagues.Remove(leagueNameToLower);
-            }
-
-            LOGGER.Debug($"Successfully updated league with name {newLeagueNameToLower}");
-            Leagues[newLeagueNameToLower] = league;
+            LOGGER.Debug($"Updating league with name {league.Name}");
+            db.Leagues.Update(league);
+            db.SaveChanges();
+            LOGGER.Debug($"Successfully updated league with name {league.Name}");
         }
 
         /// <summary>
@@ -120,15 +101,19 @@ namespace AmateurLeague
         /// <returns></returns>
         public static bool DeleteLeague(string leagueName)
         {
-            var leagueNameToLower = leagueName.ToLower();
+            LOGGER.Debug($"Deleting league with name {leagueName}");
             bool result;
-            if (Leagues.ContainsKey(leagueNameToLower))
+            if (IsLeagueExists(leagueName))
             {
                 // To do - League must be empty (i.e. no teams) before deleting
-                result = Leagues.Remove(leagueNameToLower);
+                result = db.Leagues.Remove(db.Leagues.Find(leagueName)) != null;
+                if (result)
+                {
+                    db.SaveChanges();
+                }
             } else
             {
-                LOGGER.Error($"Attempting to delete {leagueNameToLower} league - does not exist");
+                LOGGER.Error($"Attempting to delete {leagueName} league - does not exist");
                 result = false;
             }
             return result;
@@ -146,36 +131,36 @@ namespace AmateurLeague
         /// <returns>The newly created team</returns>
         public static Team CreateTeam(string teamName, League league)
         {
-            var teamNameToLower = teamName.ToLower();
-            LOGGER.Debug($"Creating new Team with name {teamNameToLower} in league {league}");
-            if (Teams.ContainsKey(teamNameToLower))
+            LOGGER.Debug($"Creating new Team with name {teamName} in league {league}");
+            if (IsTeamExist(teamName))
             {
-                LOGGER.Debug($"Failed to create new Team with name {teamNameToLower} - Team name already exists");
+                LOGGER.Debug($"Failed to create new Team with name {teamName} - Team name already exists");
                 return null;
             }
 
             var newTeam = new Team()
             {
-                Name = teamNameToLower,
+                Name = teamName,
                 League = league
             };
 
-            LOGGER.Debug($"Successfully created new Team with name {teamNameToLower} in league {league}");
-            Teams.Add(teamNameToLower, newTeam);
+            LOGGER.Debug($"Successfully created new Team with name {teamName} in league {league}");
+            db.Teams.Add(newTeam);
+            db.SaveChanges();
             return newTeam;
         }
         public static bool IsTeamExist(string teamName)
         {
-            return Teams.ContainsKey(teamName.ToLower());
+            return db.Teams.Find(teamName) != null;
         }
 
         /// <summary>
         /// Retrieve all teams
         /// </summary>
         /// <returns>All teams</returns>
-        public static Dictionary<string, Team> GetAllTeams()
+        public static IEnumerable<Team> GetAllTeams()
         {
-            return Teams;
+            return db.Teams;
         }
 
         /// <summary>
@@ -185,17 +170,17 @@ namespace AmateurLeague
         /// <returns></returns>
         public static Team GetTeam(string teamName)
         {
-            var teamNameToLower = teamName.ToLower();
-            LOGGER.Debug($"Retrieving Team: {teamNameToLower}");
-            if (Teams.ContainsKey(teamNameToLower))
+            LOGGER.Debug($"Retrieving Team: {teamName}");
+            if (IsTeamExist(teamName))
             {
-                LOGGER.Debug($"Retrieving Team: {Teams[teamNameToLower]}");
-                return Teams[teamNameToLower];
+                LOGGER.Debug($"Retrieving Team with name {teamName}");
+                return db.Teams.Find(teamName);
             }
             else
             {
-                LOGGER.Debug($"Failed to retreive team {teamNameToLower} - does not exist");
-                throw new Exception($"Failed to retreive {teamNameToLower} team - does not exist");
+                LOGGER.Debug($"Failed to retreive team {teamName} - does not exist");
+                // throw new Exception($"Failed to retreive {teamName} team - does not exist");
+                return null;
             }
         }
 
@@ -205,8 +190,10 @@ namespace AmateurLeague
         /// <param name="team">The team to update</param>
         public static void UpdateTeam(Team team)
         {
-            LOGGER.Debug($"Upating Team: {team}");
-            Teams[team.Name] = team;
+            LOGGER.Debug($"Updating team with name {team.Name}");
+            db.Teams.Update(team);
+            db.SaveChanges();
+            LOGGER.Debug($"Successfully updated team with name {team.Name}");
         }
 
         /// <summary>
@@ -216,20 +203,21 @@ namespace AmateurLeague
         /// <returns>true if the deletion was successfull, otherwise false</returns>
         public static bool DeleteTeam(string teamName)
         {
-            var teamNameToLower = teamName.ToLower();
-            LOGGER.Debug($"Deleting Team: {teamNameToLower}");
+            LOGGER.Debug($"Deleting Team with name {teamName}");
             bool result;
-            if (Teams.ContainsKey(teamNameToLower))
+            if (IsTeamExist(teamName))
             {
-                LOGGER.Debug($"Deleting Team: {Teams[teamNameToLower]}");
-                result = Teams.Remove(teamNameToLower);
+                result = db.Teams.Remove(db.Teams.Find(teamName)) != null;
+                if (result)
+                {
+                    db.SaveChanges();
+                }
             }
             else
             {
-                LOGGER.Error($"Failed to delete {teamNameToLower} team - does not exist");
+                LOGGER.Error($"Failed to delete team with name {teamName} - does not exist");
                 result = false;
             }
-
             return result;
         }
 
@@ -241,30 +229,26 @@ namespace AmateurLeague
         /// <returns>true if player</returns>
         public static bool AddPlayerToTeam(string teamName, Player player)
         {
-            var teamNameToLower = teamName.ToLower();
-            LOGGER.Debug($"Adding player {player} to team {teamNameToLower}");
+            LOGGER.Debug($"Adding player {player} to team {teamName}");
             var result = true;
-            if (Teams.ContainsKey(teamNameToLower))
+            if (IsTeamExist(teamName))
             {
-                if (!Teams[teamNameToLower].IsPlayerOnRoster(player.EmailAddress))
+                var team = db.Teams.Find(teamName);
+                if (!team.IsPlayerOnRoster(player.EmailAddress))
                 {
-                    LOGGER.Debug($"Successfully added player {player} to team {teamNameToLower}");
-                    Teams[teamNameToLower].AddPlayer(player);
-
-                    if (!Players.ContainsKey(player.EmailAddress))
-                    {
-                        Players.Add(player.EmailAddress, player);
-                    }
+                    team.AddPlayer(player);
+                    db.SaveChanges();
+                    LOGGER.Debug($"Successfully added player {player} to team {teamName}");
                 }
                 else
                 {
-                    LOGGER.Error($"Failed to add player {player} to team {teamNameToLower} - player already on the roster");
+                    LOGGER.Error($"Failed to add player {player} to team {teamName} - player already on the roster");
                     result = false;
                 }
             }
             else
             {
-                LOGGER.Error($"Failed to add player {player} to team {teamNameToLower} - team does not exist");
+                LOGGER.Error($"Failed to add player {player} to team {teamName} - team does not exist");
                 result = false;
             }
 
@@ -279,30 +263,32 @@ namespace AmateurLeague
         /// <returns></returns>
         public static bool RemovePlayerFromTeam(string teamName, Player player)
         {
-            var teamNameToLower = teamName.ToLower();
-            LOGGER.Debug($"Removing player {player} from team {teamNameToLower}");
+            LOGGER.Debug($"Removing player {player} from team {teamName}");
             var result = true;
-            if (Teams.ContainsKey(teamNameToLower))
+            if (IsTeamExist(teamName))
             {
-                if (Teams[teamNameToLower].IsPlayerOnRoster(player.EmailAddress))
+                var team = db.Teams.Find(teamName);
+                if (team.IsPlayerOnRoster(player.EmailAddress))
                 {
-                    Teams[teamNameToLower].RemovePlayer(player);
-                    LOGGER.Debug($"Successfully removed player {player} from team {teamNameToLower}");
+                    team.RemovePlayer(player);
+                    db.SaveChanges();
+                    LOGGER.Debug($"Successfully removed player {player} to team {teamName}");
                 }
                 else
                 {
-                    LOGGER.Error($"Failed to remove player {player.EmailAddress} to {teamNameToLower} team - player is not on the roster");
+                    LOGGER.Error($"Failed to remove player {player} to {teamName} team - player is not on the roster");
                     result = false;
                 }
             }
             else
             {
-                LOGGER.Error($"Failed to remove player {player.EmailAddress} to {teamNameToLower} team - team does not exist");
+                LOGGER.Error($"Failed to remove player {player} to {teamName} team - team does not exist");
                 result = false;
             }
 
             return result;
         }
+
         #endregion Methods for Teams
 
         #region Methods for Players
@@ -317,30 +303,32 @@ namespace AmateurLeague
         /// <returns></returns>
         public static Player CreatePlayer(string emailAddress, string firstName, string lastName, GenderType gender, DateTime dateOfBirth)
         {
-            var emailLower = emailAddress.ToLower();
-            LOGGER.Debug($"Creating new player with email address {emailLower}");
-            if (string.IsNullOrEmpty(emailLower))
+            var emailAddressLower = emailAddress.Trim().ToLower();
+            LOGGER.Debug($"Creating new player with email address {emailAddressLower}");
+            if (string.IsNullOrEmpty(emailAddressLower))
             {
-                LOGGER.Debug($"Failed to create new player - email address cannot be null nor empty");
+                LOGGER.Debug($"Failed to create new player with email address {emailAddressLower} - email address cannot be null nor empty");
                 return null;
             }
-            else if (Players.ContainsKey(emailLower))
+            else if (IsPlayerExists(emailAddressLower))
             {
-                LOGGER.Debug($"Failed to create new player - email address already exists");
+                LOGGER.Debug($"Failed to create new player with email address {emailAddressLower} - email address already exists");
                 return null;
             }
 
             var newPlayer = new Player()
             {
-                EmailAddress = emailLower,
+                EmailAddress = emailAddressLower,
                 FirstName = firstName,
                 LastName = lastName,
                 Gender = gender,
                 DateOfBirth = dateOfBirth
             };
 
+            db.Players.Add(newPlayer);
+            db.SaveChanges();
             LOGGER.Debug($"Created new player {newPlayer}");
-            Players.Add(emailLower, newPlayer);
+            
             return newPlayer;
         }
 
@@ -348,9 +336,9 @@ namespace AmateurLeague
         /// Retrieve all players
         /// </summary>
         /// <returns>All players</returns>
-        public static Dictionary<string, Player> GetAllPlayers()
+        public static IEnumerable<Player> GetAllPlayers()
         {
-            return Players;
+            return db.Players;
         }
 
         /// <summary>
@@ -360,16 +348,16 @@ namespace AmateurLeague
         /// <returns>player, otherwise throws an exception</returns>
         public static Player GetPlayer(string emailAddress)
         {
-            var emailLower = emailAddress.ToLower();
-            LOGGER.Debug($"Retrieving player with email address {emailLower}");
-            if (Players.ContainsKey(emailLower))
+            var emailAddressLower = emailAddress.Trim().ToLower();
+            LOGGER.Debug($"Retrieving player with email address {emailAddressLower}");
+            if (IsPlayerExists(emailAddressLower))
             {
-                LOGGER.Debug($"Successfully retrieved player with email address {emailLower}: Players[emailAddress]");
-                return Players[emailLower];
+                LOGGER.Debug($"Successfully retrieved player with email address {emailAddressLower}");
+                return db.Players.Find(emailAddressLower);
             }
             else
             {
-                LOGGER.Error($"Failed to retreive player with email address {emailLower} - does not exist");
+                LOGGER.Error($"Failed to retreive player with email address {emailAddressLower} - does not exist");
                 return null;
             }
         }
@@ -381,8 +369,7 @@ namespace AmateurLeague
         /// <returns></returns>
         public static bool IsPlayerExists(string emailAddress)
         {
-            var emailLower = emailAddress.ToLower();
-            return Players.ContainsKey(emailLower);
+            return db.Players.Find(emailAddress) != null;
         }
 
         /// <summary>
@@ -391,8 +378,10 @@ namespace AmateurLeague
         /// <param name="player"></param>
         public static void UpdatePlayer(Player player)
         {
-            LOGGER.Debug($"Updating player {player}");
-            Players[player.EmailAddress] = player;
+            LOGGER.Debug($"Updating player with email address {player.EmailAddress}");
+            db.Players.Update(player);
+            db.SaveChanges();
+            LOGGER.Debug($"Successfully updated player with email address {player.EmailAddress}");
         }
 
         /// <summary>
@@ -402,23 +391,32 @@ namespace AmateurLeague
         /// <returns>true if successfully deleted, otherwise returns false</returns>
         public static bool DeletePlayer(string emailAddress)
         {
-            var emailLower = emailAddress.ToLower();
-            LOGGER.Debug($"Deleting player with email address {emailLower}");
+            var emailAddressLower = emailAddress.Trim().ToLower();
+            LOGGER.Debug($"Deleting player with email address {emailAddressLower}");
             bool result;
-            if (Players.ContainsKey(emailLower))
+            if (IsPlayerExists(emailAddressLower))
             {
                 // To do - check if player is on a roster of any teams. If yes, do not allow to delete player
-                LOGGER.Debug($"Successfully deleted player with email address {emailLower}");
-                result = Players.Remove(emailLower);
+                LOGGER.Debug($"Successfully deleted player with email address {emailAddressLower}");
+                result = db.Players.Remove(db.Players.Find(emailAddressLower)) != null;
+                if (result)
+                {
+                    db.SaveChanges();
+                }
             }
             else
             {
-                LOGGER.Error($"Failed to delete player with email address {emailLower} - does not exist");
+                LOGGER.Error($"Failed to delete player with email address {emailAddressLower} - does not exist");
                 result = false;
             }
 
             return result;
         }
         #endregion Methods for Player
+
+        public static IEnumerable<Sport> GetAllSports()
+        {
+            return db.Sports;
+        }
     }
 }

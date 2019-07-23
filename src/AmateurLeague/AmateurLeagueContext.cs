@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AmateurLeague.Entity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,7 +8,7 @@ namespace AmateurLeague
 {
     /**
      *
-     */ 
+     */
     public class AmateurLeagueContext: DbContext
     {
         public DbSet<Sport> Sports { get; set; }
@@ -27,8 +28,21 @@ namespace AmateurLeague
                 e.HasKey(s => s.Id).HasName("PK_Sports");
                 e.Property(s => s.Id).ValueGeneratedOnAdd();
                 e.Property(s => s.Name).IsRequired().HasMaxLength(100);
-                e.Property(s => s.Type).IsRequired();
+                e.Property(s => s.GenderType).IsRequired();
             });
+            modelBuilder.Entity<Sport>().HasData(new Sport{ Id = "1", Name = "Basketball", Type = SportGenderTypes.Men},
+                                                new Sport { Id = "2", Name = "Basketball", Type = SportGenderTypes.Women },
+                                                new Sport { Id = "3", Name = "Basketball", Type = SportGenderTypes.Coed },
+                                                new Sport { Id = "4", Name = "Baseball", Type = SportGenderTypes.Men },
+                                                new Sport { Id = "5", Name = "Baseball", Type = SportGenderTypes.Women },
+                                                new Sport { Id = "6", Name = "Baseball", Type = SportGenderTypes.Coed },
+                                                new Sport { Id = "7", Name = "Soccer", Type = SportGenderTypes.Men },
+                                                new Sport { Id = "8", Name = "Soccer", Type = SportGenderTypes.Women },
+                                                new Sport { Id = "9", Name = "Soccer", Type = SportGenderTypes.Coed },
+                                                new Sport { Id = "10", Name = "Flag Football", Type = SportGenderTypes.Men },
+                                                new Sport { Id = "11", Name = "Flag Football", Type = SportGenderTypes.Women },
+                                                new Sport { Id = "12", Name = "Flag Football", Type = SportGenderTypes.Coed });
+;            
 
             modelBuilder.Entity<League>().ToTable("Leagues");
             modelBuilder.Entity<League>(e => 
