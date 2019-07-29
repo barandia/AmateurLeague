@@ -17,8 +17,8 @@ namespace AmateurLeague.Entity
     [DataContract(IsReference = true)]
     public class Sport
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
+        public string SportId { get; set; }
+        public string SportName { get; set; }
         [NotMapped]
         public SportGenderTypes Type { get; set; }
 
@@ -34,8 +34,8 @@ namespace AmateurLeague.Entity
         public override string ToString()
         {
             var strBldr = new StringBuilder();
-            strBldr.Append($"{{\"Id\": \"{Id}\",");
-            strBldr.Append($"\"Name\": \"{Name}\",");
+            strBldr.Append($"{{\"SportId\": \"{SportId}\",");
+            strBldr.Append($"\"Name\": \"{SportName}\",");
             strBldr.Append($"\"GenderType\": \"{GenderType}\"}}");
 
             return strBldr.ToString();

@@ -37,4 +37,8 @@
   <ItemGroup>
     <None Include="..\..\config\NLog.config" CopyToOutputDirectory="Always" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
 </Project>

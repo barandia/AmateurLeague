@@ -5,10 +5,10 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:2.2-stretch AS build
 WORKDIR /src
-COPY ["AmateurLeagueUI/AmateurLeagueUI.csproj", "AmateurLeagueUI/"]
-RUN dotnet restore "AmateurLeagueUI/AmateurLeagueUI.csproj"
+COPY ["src/AmateurLeagueUI/AmateurLeagueUI.csproj", "src/AmateurLeagueUI/"]
+RUN dotnet restore "src/AmateurLeagueUI/AmateurLeagueUI.csproj"
 COPY . .
-WORKDIR "/src/AmateurLeagueUI"
+WORKDIR "/src/src/AmateurLeagueUI"
 RUN dotnet build "AmateurLeagueUI.csproj" -c Release -o /app
 
 FROM build AS publish

@@ -37,7 +37,7 @@ namespace AmateurLeague
 
             var newLeague = new League()
             {
-                Name = leagueName,
+                LeagueName = leagueName,
                 Sport = sport
             };
 
@@ -54,18 +54,10 @@ namespace AmateurLeague
         /// </summary>
         /// <param name="leagueName">Name of the league to retrieve</param>
         /// <returns>The League to retrieve</returns>
-        public static League GetLeague(string leagueName)
+        public static League GetLeague(int leagueId)
         {
-            LOGGER.Debug($"Retrieving league with name {leagueName}");
-            if (IsLeagueExists(leagueName))
-            {
-                LOGGER.Debug($"Successfully retrieved league with name {leagueName}");
-                return db.Leagues.Find(leagueName);
-            } else
-            {
-                LOGGER.Error($"Failed to retreive {leagueName} league - does not exist");
-                return null;
-            }
+            LOGGER.Debug($"Retrieving league with Id {leagueId}");
+            return db.Leagues.Find(leagueId);
         }
 
         /// <summary>
@@ -79,7 +71,12 @@ namespace AmateurLeague
 
         public static bool IsLeagueExists(string leagueName)
         {
-            return db.Leagues.Find(leagueName) != null;
+            return db.Leagues.Any(l => l.LeagueName == leagueName);
+        }
+
+        public static bool IsLeagueExists(int leagueId)
+        {
+            return db.Leagues.Find(leagueId) != null;
         }
 
         /// <summary>
@@ -88,10 +85,10 @@ namespace AmateurLeague
         /// <param name="league">League to update</param>
         public static void UpdateLeague(League league)
         {
-            LOGGER.Debug($"Updating league with name {league.Name}");
+            LOGGER.Debug($"Updating league with name {league.LeagueName}");
             db.Leagues.Update(league);
             db.SaveChanges();
-            LOGGER.Debug($"Successfully updated league with name {league.Name}");
+            LOGGER.Debug($"Successfully updated league with name {league.LeagueName}");
         }
 
         /// <summary>
@@ -118,6 +115,18 @@ namespace AmateurLeague
             }
             return result;
         }
+
+        public static bool DeleteLeague(int leagueId)
+        {
+            LOGGER.Debug($"Deleting league with Id {leagueId}");
+            bool result = db.Leagues.Remove(db.Leagues.Find(leagueId)) != null;
+            if (result)
+            {
+                db.SaveChanges();
+            }
+            
+            return result;
+        }
         #endregion Methods for League
 
         #region Methods for Teams
@@ -140,7 +149,7 @@ namespace AmateurLeague
 
             var newTeam = new Team()
             {
-                Name = teamName,
+                TeamName = teamName,
                 League = league
             };
 
@@ -151,7 +160,7 @@ namespace AmateurLeague
         }
         public static bool IsTeamExist(string teamName)
         {
-            return db.Teams.Find(teamName) != null;
+            return db.Teams.Any(t => t.TeamName == teamName);
         }
 
         /// <summary>
@@ -190,10 +199,10 @@ namespace AmateurLeague
         /// <param name="team">The team to update</param>
         public static void UpdateTeam(Team team)
         {
-            LOGGER.Debug($"Updating team with name {team.Name}");
+            LOGGER.Debug($"Updating team with name {team.TeamName}");
             db.Teams.Update(team);
             db.SaveChanges();
-            LOGGER.Debug($"Successfully updated team with name {team.Name}");
+            LOGGER.Debug($"Successfully updated team with name {team.TeamName}");
         }
 
         /// <summary>
@@ -227,28 +236,27 @@ namespace AmateurLeague
         /// <param name="teamName">The name of the team to add the player</param>
         /// <param name="player">The player to add to a team</param>
         /// <returns>true if player</returns>
-        public static bool AddPlayerToTeam(string teamName, Player player)
+        public static bool AddPlayerToTeam(int teamId, Player player)
         {
-            LOGGER.Debug($"Adding player {player} to team {teamName}");
+            var team = db.Teams.Find(teamId);
             var result = true;
-            if (IsTeamExist(teamName))
+            if (team != null)
             {
-                var team = db.Teams.Find(teamName);
-                if (!team.IsPlayerOnRoster(player.EmailAddress))
+                LOGGER.Debug($"Adding player {player} to team {team.TeamName}");
+                if (!team.IsPlayerOnRoster(player.PlayerId))
                 {
                     team.AddPlayer(player);
                     db.SaveChanges();
-                    LOGGER.Debug($"Successfully added player {player} to team {teamName}");
+                    LOGGER.Debug($"Successfully added player {player} to team {team.TeamName}");
                 }
                 else
                 {
-                    LOGGER.Error($"Failed to add player {player} to team {teamName} - player already on the roster");
+                    LOGGER.Error($"Failed to add player {player} to team {team.TeamName} - player already on the roster");
                     result = false;
                 }
-            }
-            else
+            }else
             {
-                LOGGER.Error($"Failed to add player {player} to team {teamName} - team does not exist");
+                LOGGER.Error($"Failed to add player {player} to team {team.TeamName} - team does not exist");
                 result = false;
             }
 
@@ -268,7 +276,7 @@ namespace AmateurLeague
             if (IsTeamExist(teamName))
             {
                 var team = db.Teams.Find(teamName);
-                if (team.IsPlayerOnRoster(player.EmailAddress))
+                if (team.IsPlayerOnRoster(player.PlayerId))
                 {
                     team.RemovePlayer(player);
                     db.SaveChanges();
@@ -369,7 +377,7 @@ namespace AmateurLeague
         /// <returns></returns>
         public static bool IsPlayerExists(string emailAddress)
         {
-            return db.Players.Find(emailAddress) != null;
+            return db.Players.Any(p => p.EmailAddress == emailAddress);
         }
 
         /// <summary>

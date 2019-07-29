@@ -10,7 +10,8 @@ namespace AmateurLeague.Entity
     //[JsonObject(IsReference = true)]
     public class Team
     {
-        public string Name { get; set; }
+        public int TeamId { get; set; }
+        public string TeamName { get; set; }
         public League League { get; set; }
         public ICollection<TeamPlayer> TeamPlayers { get; set; }
 
@@ -21,7 +22,7 @@ namespace AmateurLeague.Entity
                 TeamPlayers = new List<TeamPlayer>();
             }
 
-            TeamPlayers.Add(new TeamPlayer() { PlayerId = playerToAdd.EmailAddress.Trim().ToLower(), TeamId = Name });
+            TeamPlayers.Add(new TeamPlayer() { PlayerId = playerToAdd.PlayerId, TeamId = TeamId });
         }
 
         public void RemovePlayer(Player playerToRemove)
@@ -31,7 +32,7 @@ namespace AmateurLeague.Entity
                 TeamPlayer teamPlayerToRemove = null;
                 foreach (TeamPlayer teamPlayer in TeamPlayers)
                 {
-                    if (teamPlayer.PlayerId.ToLower().Equals(playerToRemove.EmailAddress.ToLower()))
+                    if (teamPlayer.PlayerId == playerToRemove.PlayerId)
                     {
                         teamPlayerToRemove = teamPlayer;
                         break;
@@ -44,13 +45,13 @@ namespace AmateurLeague.Entity
                 }
             }
         }
-        public bool IsPlayerOnRoster(string emailAddress)
+        public bool IsPlayerOnRoster(int playerId)
         {
             if (TeamPlayers != null)
             {
                 foreach (TeamPlayer teamPlayer in TeamPlayers)
                 {
-                    if (teamPlayer.PlayerId.ToLower().Equals(emailAddress.ToLower()))
+                    if (teamPlayer.PlayerId == playerId)
                     {
                         return true;
                     }
@@ -63,8 +64,9 @@ namespace AmateurLeague.Entity
         public override string ToString()
         {
             var strBldr = new StringBuilder();
-            strBldr.Append($"{{\"Name\": \"{Name}\",");
-            strBldr.Append($"\"League\": \"{League.Name}\"");
+            strBldr.Append($"{{\"TeamId\": \"{TeamId}\",");
+            strBldr.Append($"\"Name\": \"{TeamName}\",");
+            strBldr.Append($"\"League\": \"{League.LeagueName}\"");
             if (TeamPlayers != null)
             {
                 var players = new HashSet<Player>();

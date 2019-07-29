@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AmateurLeague.Migrations
 {
     [DbContext(typeof(AmateurLeagueContext))]
-    [Migration("20190723061153_UpdateStructure")]
-    partial class UpdateStructure
+    [Migration("20190727224841_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -23,15 +23,18 @@ namespace AmateurLeague.Migrations
 
             modelBuilder.Entity("AmateurLeague.Entity.League", b =>
                 {
-                    b.Property<string>("Name")
+                    b.Property<int>("LeagueId")
                         .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(100);
 
                     b.Property<string>("SportId")
                         .IsRequired();
 
-                    b.HasKey("Name")
-                        .HasName("PK_Leagues");
+                    b.HasKey("LeagueId");
 
                     b.HasIndex("SportId");
 
@@ -40,10 +43,14 @@ namespace AmateurLeague.Migrations
 
             modelBuilder.Entity("AmateurLeague.Entity.Player", b =>
                 {
-                    b.Property<string>("EmailAddress")
-                        .ValueGeneratedOnAdd();
+                    b.Property<int>("PlayerId")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("DateOfBirth");
+
+                    b.Property<string>("EmailAddress")
+                        .IsRequired();
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -55,15 +62,17 @@ namespace AmateurLeague.Migrations
                         .IsRequired()
                         .HasMaxLength(100);
 
-                    b.HasKey("EmailAddress")
-                        .HasName("PK_Players");
+                    b.HasKey("PlayerId");
+
+                    b.HasIndex("EmailAddress")
+                        .IsUnique();
 
                     b.ToTable("Players");
                 });
 
             modelBuilder.Entity("AmateurLeague.Entity.Sport", b =>
                 {
-                    b.Property<string>("Id")
+                    b.Property<string>("SportId")
                         .ValueGeneratedOnAdd();
 
                     b.Property<string>("GenderType")
@@ -74,81 +83,80 @@ namespace AmateurLeague.Migrations
                         .IsRequired()
                         .HasMaxLength(100);
 
-                    b.HasKey("Id")
-                        .HasName("PK_Sports");
+                    b.HasKey("SportId");
 
                     b.ToTable("Sports");
 
                     b.HasData(
                         new
                         {
-                            Id = "1",
+                            SportId = "1",
                             GenderType = "Men",
                             Name = "Basketball"
                         },
                         new
                         {
-                            Id = "2",
+                            SportId = "2",
                             GenderType = "Women",
                             Name = "Basketball"
                         },
                         new
                         {
-                            Id = "3",
+                            SportId = "3",
                             GenderType = "Coed",
                             Name = "Basketball"
                         },
                         new
                         {
-                            Id = "4",
+                            SportId = "4",
                             GenderType = "Men",
                             Name = "Baseball"
                         },
                         new
                         {
-                            Id = "5",
+                            SportId = "5",
                             GenderType = "Women",
                             Name = "Baseball"
                         },
                         new
                         {
-                            Id = "6",
+                            SportId = "6",
                             GenderType = "Coed",
                             Name = "Baseball"
                         },
                         new
                         {
-                            Id = "7",
+                            SportId = "7",
                             GenderType = "Men",
                             Name = "Soccer"
                         },
                         new
                         {
-                            Id = "8",
+                            SportId = "8",
                             GenderType = "Women",
                             Name = "Soccer"
                         },
                         new
                         {
-                            Id = "9",
+                            SportId = "9",
                             GenderType = "Coed",
                             Name = "Soccer"
                         },
                         new
                         {
-                            Id = "10",
+                            SportId = "10",
                             GenderType = "Men",
                             Name = "Flag Football"
                         },
                         new
                         {
-                            Id = "11",
+                            SportId = "11",
                             GenderType = "Women",
                             Name = "Flag Football"
                         },
                         new
                         {
-                            Id = "12",
+                            SportId = "12",
                             GenderType = "Coed",
                             Name = "Flag Football"
                         });
@@ -156,26 +164,28 @@ namespace AmateurLeague.Migrations
 
             modelBuilder.Entity("AmateurLeague.Entity.Team", b =>
                 {
-                    b.Property<string>("Name")
+                    b.Property<int>("TeamId")
                         .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("LeagueId");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(100);
 
-                    b.Property<string>("LeagueName")
-                        .IsRequired();
+                    b.HasKey("TeamId");
 
-                    b.HasKey("Name")
-                        .HasName("PK_Teams");
-
-                    b.HasIndex("LeagueName");
+                    b.HasIndex("LeagueId");
 
                     b.ToTable("Teams");
                 });
 
             modelBuilder.Entity("AmateurLeague.Entity.TeamPlayer", b =>
                 {
-                    b.Property<string>("TeamId");
+                    b.Property<int>("TeamId");
 
-                    b.Property<string>("PlayerId");
+                    b.Property<int>("PlayerId");
 
                     b.HasKey("TeamId", "PlayerId");
 
@@ -196,7 +206,7 @@ namespace AmateurLeague.Migrations
                 {
                     b.HasOne("AmateurLeague.Entity.League", "League")
                         .WithMany("Teams")
-                        .HasForeignKey("LeagueName")
+                        .HasForeignKey("LeagueId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

@@ -10,14 +10,16 @@ namespace AmateurLeague.Entity
     //[JsonObject(IsReference = true)]
     public class League
     {
-        public string Name { get; set; }
+        public int LeagueId { get; set; }
+        public string LeagueName { get; set; }
         public Sport Sport { get; set; }
         public ICollection<Team> Teams { get; set; }
 
         public override string ToString()
         {
             var strBldr = new StringBuilder();
-            strBldr.Append($"{{\"Name\": \"{Name}\",");
+            strBldr.Append($"{{\"LeagueId\": \"{LeagueId}\",");
+            strBldr.Append($"\"LeagueName\": \"{LeagueName}\",");
             strBldr.Append($"\"Sport\": {Sport.ToString()}");
             if (Teams != null)
             {

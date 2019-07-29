@@ -18,6 +18,7 @@ namespace AmateurLeague.Entity
     //[DataContract(IsReference = true)]
     public class Player
     {
+        public int PlayerId { get; set; }
         public string EmailAddress { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -28,7 +29,8 @@ namespace AmateurLeague.Entity
         public override string ToString()
         {
             var strBldr = new StringBuilder();
-            strBldr.Append($"{{\"EmailAddress\": \"{EmailAddress}\",");
+            strBldr.Append($"{{\"PlayerId\": \"{PlayerId}\",");
+            strBldr.Append($"\"EmailAddress\": \"{EmailAddress}\",");
             strBldr.Append($"\"FirstName\": \"{FirstName}\",");
             strBldr.Append($"\"LastName\": \"{LastName}\",");
             strBldr.Append($"\"Gender\": \"{Gender}\",");

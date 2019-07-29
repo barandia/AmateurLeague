@@ -86,7 +86,7 @@ namespace AmateurLeague
                 var sports = LeagueManager.GetAllSports().ToList();
                 for (int i = 0; i < sports.Count; i++)
                 {
-                    Console.WriteLine($"\t{i}. {sports[i].Name} - {sports[i].Type}");
+                    Console.WriteLine($"\t{i}. {sports[i].SportName} - {sports[i].Type}");
                 }
 
                 Console.Write("Sports: ");
@@ -197,12 +197,12 @@ namespace AmateurLeague
                     Console.Error.WriteLine("Failed to add player to a team - no available players to add");
                     return;
                 }
-                Console.WriteLine($"Choose player to add to team {teamToUpdate.Name}: ");
+                Console.WriteLine($"Choose player to add to team {teamToUpdate.TeamName}: ");
                 Player playerToAdd = PrintOptionsAndSelect(allPlayers);
 
                 if (teamToUpdate != null && playerToAdd != null)
                 {
-                    LeagueManager.AddPlayerToTeam(teamToUpdate.Name, playerToAdd);
+                    LeagueManager.AddPlayerToTeam(teamToUpdate.TeamId, playerToAdd);
                 }
             }
             catch (Exception e)
