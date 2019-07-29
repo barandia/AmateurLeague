@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AmateurLeague.Migrations
 {
-    [DbContext(typeof(AmateurLeagueContext))]
+    [DbContext(typeof(LeagueManagerContext))]
     [Migration("20190727231353_AddedUniqueFields")]
     partial class AddedUniqueFields
     {

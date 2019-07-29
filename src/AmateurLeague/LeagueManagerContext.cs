@@ -1,5 +1,6 @@
 ﻿using AmateurLeague.Entity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,16 +10,29 @@ namespace AmateurLeague
     /**
      *
      */
-    public class AmateurLeagueContext: DbContext
+    public class LeagueManagerContext: DbContext
     {
         public DbSet<Sport> Sports { get; set; }
         public DbSet<Player> Players { get; set; }
         public DbSet<Team> Teams { get; set; }
         public DbSet<League> Leagues { get; set; }
 
+        public LeagueManagerContext(DbContextOptions<LeagueManagerContext> options) : base(options)
+        {
+            
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=AmateurLeagueDb;Integrated Security=True;Connect Timeout=30;");
+            //if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
+            //{
+            //    optionsBuilder.UseSqlServer(Configuration.GetConnectionString("MyDbConnection"));
+            //}
+            //else
+            //{
+            //    //optionsBuilder.UseSqlServer(@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=AmateurLeagueDb;Integrated Security=True;Connect Timeout=30;");
+            //    optionsBuilder.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+            //}
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

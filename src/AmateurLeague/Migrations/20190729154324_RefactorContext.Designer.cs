@@ -4,14 +4,16 @@ using AmateurLeague;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AmateurLeague.Migrations
 {
     [DbContext(typeof(LeagueManagerContext))]
-    partial class AmateurLeagueContextModelSnapshot : ModelSnapshot
+    [Migration("20190729154324_RefactorContext")]
+    partial class RefactorContext
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

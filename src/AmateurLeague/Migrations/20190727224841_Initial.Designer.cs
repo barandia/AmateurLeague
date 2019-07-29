@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AmateurLeague.Migrations
 {
-    [DbContext(typeof(AmateurLeagueContext))]
+    [DbContext(typeof(LeagueManagerContext))]
     [Migration("20190727224841_Initial")]
     partial class Initial
     {

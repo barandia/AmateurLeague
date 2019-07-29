@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using AmateurLeagueUI.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using AmateurLeague;
 
 namespace AmateurLeagueUI
 {
@@ -38,20 +39,29 @@ namespace AmateurLeagueUI
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
             {
                 services.AddDbContext<ApplicationDbContext>(options =>
-                        options.UseSqlServer(Configuration.GetConnectionString("MyDbConnection")));
+                    options.UseSqlServer(Configuration.GetConnectionString("MyDbConnection")));
+                services.AddDbContext<LeagueManagerContext>(options =>
+                    options.UseSqlServer(Configuration.GetConnectionString("MyDbConnection")));
+                services.AddSingleton<LeagueManager>(new LeagueManager(Configuration.GetConnectionString("MyDbConnection")));
+
             }
             else
             {
                 services.AddDbContext<ApplicationDbContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                services.AddDbContext<LeagueManagerContext>(options =>
+                    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                services.AddSingleton(new LeagueManager(Configuration.GetConnectionString("DefaultConnection")));
             }
 
             services.AddDefaultIdentity<IdentityUser>()
                 .AddDefaultUI(UIFramework.Bootstrap4)
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddEntityFrameworkStores< LeagueManagerContext>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.BuildServiceProvider().GetService<ApplicationDbContext>().Database.Migrate();
+            services.BuildServiceProvider().GetService<LeagueManagerContext>().Database.Migrate();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

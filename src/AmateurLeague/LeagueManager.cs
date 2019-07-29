@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
 
@@ -13,10 +14,18 @@ namespace AmateurLeague
      *  - CRUD for Team
      *  - CRUD for Player
      */
-    public static class LeagueManager
+    public class LeagueManager
     {
         private static readonly NLog.Logger LOGGER = NLog.LogManager.GetCurrentClassLogger();
-        private static readonly AmateurLeagueContext db = new AmateurLeagueContext();
+        private readonly LeagueManagerContext db;
+
+        public LeagueManager(string connectionString)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<LeagueManagerContext>();
+            optionsBuilder.UseSqlServer(connectionString);
+
+            db = new LeagueManagerContext(optionsBuilder.Options);
+        }
 
         #region Methods for League
         /// <summary>
@@ -26,7 +35,7 @@ namespace AmateurLeague
         /// <param name="owner">Owner of the League</param>
         /// <param name="sport">Sports played on this League</param>
         /// <returns></returns>
-        public static League CreateLeague(string leagueName, Sport sport)
+        public League CreateLeague(string leagueName, Sport sport)
         {
             LOGGER.Debug($"Creating new {sport} league with name {leagueName}");
             if (IsLeagueExists(leagueName))
@@ -54,7 +63,7 @@ namespace AmateurLeague
         /// </summary>
         /// <param name="leagueName">Name of the league to retrieve</param>
         /// <returns>The League to retrieve</returns>
-        public static League GetLeague(int leagueId)
+        public League GetLeague(int leagueId)
         {
             LOGGER.Debug($"Retrieving league with Id {leagueId}");
             return db.Leagues.Find(leagueId);
@@ -64,17 +73,17 @@ namespace AmateurLeague
         /// Retrieve all leagues
         /// </summary>
         /// <returns>All leagues</returns>
-        public static IEnumerable<League> GetAllLeagues()
+        public IEnumerable<League> GetAllLeagues()
         {
             return db.Leagues.Include(league => league.Sport);
         }
 
-        public static bool IsLeagueExists(string leagueName)
+        public bool IsLeagueExists(string leagueName)
         {
             return db.Leagues.Any(l => l.LeagueName == leagueName);
         }
 
-        public static bool IsLeagueExists(int leagueId)
+        public bool IsLeagueExists(int leagueId)
         {
             return db.Leagues.Find(leagueId) != null;
         }
@@ -83,7 +92,7 @@ namespace AmateurLeague
         /// Update league information
         /// </summary>
         /// <param name="league">League to update</param>
-        public static void UpdateLeague(League league)
+        public void UpdateLeague(League league)
         {
             LOGGER.Debug($"Updating league with name {league.LeagueName}");
             db.Leagues.Update(league);
@@ -96,7 +105,7 @@ namespace AmateurLeague
         /// </summary>
         /// <param name="leagueName">league to delete</param>
         /// <returns></returns>
-        public static bool DeleteLeague(string leagueName)
+        public bool DeleteLeague(string leagueName)
         {
             LOGGER.Debug($"Deleting league with name {leagueName}");
             bool result;
@@ -116,7 +125,7 @@ namespace AmateurLeague
             return result;
         }
 
-        public static bool DeleteLeague(int leagueId)
+        public bool DeleteLeague(int leagueId)
         {
             LOGGER.Debug($"Deleting league with Id {leagueId}");
             bool result = db.Leagues.Remove(db.Leagues.Find(leagueId)) != null;
@@ -138,7 +147,7 @@ namespace AmateurLeague
         /// <param name="captain">Captain of this team (owner)</param>
         /// <param name="coCaptain">Co-Captain of this team (co-owner)</param>
         /// <returns>The newly created team</returns>
-        public static Team CreateTeam(string teamName, League league)
+        public Team CreateTeam(string teamName, League league)
         {
             LOGGER.Debug($"Creating new Team with name {teamName} in league {league}");
             if (IsTeamExist(teamName))
@@ -158,7 +167,7 @@ namespace AmateurLeague
             db.SaveChanges();
             return newTeam;
         }
-        public static bool IsTeamExist(string teamName)
+        public bool IsTeamExist(string teamName)
         {
             return db.Teams.Any(t => t.TeamName == teamName);
         }
@@ -167,7 +176,7 @@ namespace AmateurLeague
         /// Retrieve all teams
         /// </summary>
         /// <returns>All teams</returns>
-        public static IEnumerable<Team> GetAllTeams()
+        public IEnumerable<Team> GetAllTeams()
         {
             return db.Teams;
         }
@@ -177,7 +186,7 @@ namespace AmateurLeague
         /// </summary>
         /// <param name="teamName">The name of the team to retrieve</param>
         /// <returns></returns>
-        public static Team GetTeam(string teamName)
+        public Team GetTeam(string teamName)
         {
             LOGGER.Debug($"Retrieving Team: {teamName}");
             if (IsTeamExist(teamName))
@@ -197,7 +206,7 @@ namespace AmateurLeague
         /// Updates team information
         /// </summary>
         /// <param name="team">The team to update</param>
-        public static void UpdateTeam(Team team)
+        public void UpdateTeam(Team team)
         {
             LOGGER.Debug($"Updating team with name {team.TeamName}");
             db.Teams.Update(team);
@@ -210,7 +219,7 @@ namespace AmateurLeague
         /// </summary>
         /// <param name="teamName">The name of the team to delete</param>
         /// <returns>true if the deletion was successfull, otherwise false</returns>
-        public static bool DeleteTeam(string teamName)
+        public bool DeleteTeam(string teamName)
         {
             LOGGER.Debug($"Deleting Team with name {teamName}");
             bool result;
@@ -236,7 +245,7 @@ namespace AmateurLeague
         /// <param name="teamName">The name of the team to add the player</param>
         /// <param name="player">The player to add to a team</param>
         /// <returns>true if player</returns>
-        public static bool AddPlayerToTeam(int teamId, Player player)
+        public bool AddPlayerToTeam(int teamId, Player player)
         {
             var team = db.Teams.Find(teamId);
             var result = true;
@@ -269,7 +278,7 @@ namespace AmateurLeague
         /// <param name="teamName">The name of the team where the player belongs to</param>
         /// <param name="player">The player to remove</param>
         /// <returns></returns>
-        public static bool RemovePlayerFromTeam(string teamName, Player player)
+        public bool RemovePlayerFromTeam(string teamName, Player player)
         {
             LOGGER.Debug($"Removing player {player} from team {teamName}");
             var result = true;
@@ -309,7 +318,7 @@ namespace AmateurLeague
         /// <param name="gender">Player's gender</param>
         /// <param name="dateOfBirth">Player's date of birth</param>
         /// <returns></returns>
-        public static Player CreatePlayer(string emailAddress, string firstName, string lastName, GenderType gender, DateTime dateOfBirth)
+        public Player CreatePlayer(string emailAddress, string firstName, string lastName, GenderType gender, DateTime dateOfBirth)
         {
             var emailAddressLower = emailAddress.Trim().ToLower();
             LOGGER.Debug($"Creating new player with email address {emailAddressLower}");
@@ -344,7 +353,7 @@ namespace AmateurLeague
         /// Retrieve all players
         /// </summary>
         /// <returns>All players</returns>
-        public static IEnumerable<Player> GetAllPlayers()
+        public IEnumerable<Player> GetAllPlayers()
         {
             return db.Players;
         }
@@ -354,7 +363,7 @@ namespace AmateurLeague
         /// </summary>
         /// <param name="emailAddress">The email address of the player to retrieve</param>
         /// <returns>player, otherwise throws an exception</returns>
-        public static Player GetPlayer(string emailAddress)
+        public Player GetPlayer(string emailAddress)
         {
             var emailAddressLower = emailAddress.Trim().ToLower();
             LOGGER.Debug($"Retrieving player with email address {emailAddressLower}");
@@ -375,7 +384,7 @@ namespace AmateurLeague
         /// </summary>
         /// <param name="emailAddress"></param>
         /// <returns></returns>
-        public static bool IsPlayerExists(string emailAddress)
+        public bool IsPlayerExists(string emailAddress)
         {
             return db.Players.Any(p => p.EmailAddress == emailAddress);
         }
@@ -384,7 +393,7 @@ namespace AmateurLeague
         /// Updates player
         /// </summary>
         /// <param name="player"></param>
-        public static void UpdatePlayer(Player player)
+        public void UpdatePlayer(Player player)
         {
             LOGGER.Debug($"Updating player with email address {player.EmailAddress}");
             db.Players.Update(player);
@@ -397,7 +406,7 @@ namespace AmateurLeague
         /// </summary>
         /// <param name="emailAddress">The email address of the player to delete</param>
         /// <returns>true if successfully deleted, otherwise returns false</returns>
-        public static bool DeletePlayer(string emailAddress)
+        public bool DeletePlayer(string emailAddress)
         {
             var emailAddressLower = emailAddress.Trim().ToLower();
             LOGGER.Debug($"Deleting player with email address {emailAddressLower}");
@@ -422,7 +431,7 @@ namespace AmateurLeague
         }
         #endregion Methods for Player
 
-        public static IEnumerable<Sport> GetAllSports()
+        public IEnumerable<Sport> GetAllSports()
         {
             return db.Sports;
         }

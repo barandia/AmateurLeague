@@ -14,6 +14,13 @@ namespace AmateurLeagueUI.Controllers
     [Authorize]
     public class LeaguesController : Controller
     {
+        private LeagueManager LeagueManager;
+
+        public LeaguesController(LeagueManager leagueManager)
+        {
+            LeagueManager = leagueManager;
+        }
+
         // GET: Leagues
         public async Task<IActionResult> Index()
         {
@@ -118,7 +125,7 @@ namespace AmateurLeagueUI.Controllers
                 return NotFound();
             }
 
-            var league = LeagueManager.DeleteLeague(id.Value);
+            var league = LeagueManager.GetLeague(id.Value);
             if (league == null)
             {
                 return NotFound();
