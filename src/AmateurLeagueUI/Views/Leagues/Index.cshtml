@@ -1,10 +1,10 @@
 ﻿@model IEnumerable<AmateurLeague.Entity.League>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Leagues";
 }
 
-<h1>Index</h1>
+<h1>Leagues</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
@@ -13,7 +13,10 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.LeagueName)
+                League Name
+            </th>
+            <th>
+                Sport
             </th>
             <th></th>
         </tr>
@@ -23,6 +26,9 @@
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.LeagueName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Sport.DisplayName)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.LeagueId">Edit</a> |

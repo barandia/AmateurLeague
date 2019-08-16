@@ -172,6 +172,11 @@ namespace AmateurLeague
             return db.Teams.Any(t => t.TeamName == teamName);
         }
 
+        public bool IsTeamExist(int teamId)
+        {
+            return db.Teams.Any(t => t.TeamId == teamId);
+        }
+
         /// <summary>
         /// Retrieve all teams
         /// </summary>
@@ -200,6 +205,14 @@ namespace AmateurLeague
                 // throw new Exception($"Failed to retreive {teamName} team - does not exist");
                 return null;
             }
+        }
+
+        public Team GetTeamById(int teamId)
+        {
+            LOGGER.Debug($"Retrieving Team with Id {teamId}");
+            return db.Teams.Include(team => team.League)
+                            .ThenInclude(league => league.Sport)
+                            .Where(team => team.TeamId == teamId).FirstOrDefault();
         }
 
         /// <summary>
@@ -234,6 +247,26 @@ namespace AmateurLeague
             else
             {
                 LOGGER.Error($"Failed to delete team with name {teamName} - does not exist");
+                result = false;
+            }
+            return result;
+        }
+
+        public bool DeleteTeamById(int teamId)
+        {
+            LOGGER.Debug($"Deleting Team with id {teamId}");
+            bool result;
+            if (IsTeamExist(teamId))
+            {
+                result = db.Teams.Remove(db.Teams.Find(teamId)) != null;
+                if (result)
+                {
+                    db.SaveChanges();
+                }
+            }
+            else
+            {
+                LOGGER.Error($"Failed to delete team with ID {teamId} - does not exist");
                 result = false;
             }
             return result;
@@ -379,6 +412,12 @@ namespace AmateurLeague
             }
         }
 
+        public Player GetPlayer(int playerId)
+        {
+            LOGGER.Debug($"Retrieving player with id {playerId}");
+            return db.Players.Where(player => player.PlayerId == playerId).FirstOrDefault();
+        }
+
         /// <summary>
         /// Check if player exist in the system
         /// </summary>
@@ -387,6 +426,11 @@ namespace AmateurLeague
         public bool IsPlayerExists(string emailAddress)
         {
             return db.Players.Any(p => p.EmailAddress == emailAddress);
+        }
+
+        public bool IsPlayerExists(int playerId)
+        {
+            return db.Players.Any(p => p.PlayerId == playerId);
         }
 
         /// <summary>
@@ -434,6 +478,11 @@ namespace AmateurLeague
         public IEnumerable<Sport> GetAllSports()
         {
             return db.Sports;
+        }
+
+        public Sport GetSportById(string id)
+        {
+            return db.Sports.Find(id);
         }
     }
 }

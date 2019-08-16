@@ -1,34 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using AmateurLeague;
-using AmateurLeague.Entity;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 
 namespace AmateurLeagueUI.Controllers
 {
-    [Authorize]
-    public class LeaguesController : Controller
+    public class TeamsController : Controller
     {
         private LeagueManager LeagueManager;
 
-        public LeaguesController(LeagueManager leagueManager)
+        public TeamsController(LeagueManager leagueManager)
         {
             LeagueManager = leagueManager;
         }
 
-        // GET: Leagues
+        // GET: Teams
         public IActionResult Index()
         {
-            return View(LeagueManager.GetAllLeagues());
+            return View(LeagueManager.GetAllTeams());
         }
 
-        // GET: Leagues/Details/5
+        // GET: Teams/Details/5
         public IActionResult Details(int? id)
         {
             if (id == null)
@@ -36,34 +31,35 @@ namespace AmateurLeagueUI.Controllers
                 return NotFound();
             }
 
-            var league = LeagueManager.GetLeague(id.Value);
-            if (league == null)
+            var team = LeagueManager.GetTeamById(id.Value);
+
+            if (team == null)
             {
                 return NotFound();
             }
 
-            return View(league);
+            return View(team);
         }
 
-        // GET: Leagues/Create
+        // GET: Teams/Create
         public IActionResult Create()
         {
-            ViewBag.SportList = GetSportListItems();
+            ViewBag.LeagueList = GetLeagueListItems();
             return View();
         }
 
-        // POST: Leagues/Create
+        // POST: Teams/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(IFormCollection data)
         {
-            LeagueManager.CreateLeague(data["LeagueName"], LeagueManager.GetSportById(data["SportId"]));
+            LeagueManager.CreateTeam(data["TeamName"], LeagueManager.GetLeague(int.Parse(data["LeagueId"])));
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Leagues/Edit/5
+        // GET: Teams/Edit/5
         public IActionResult Edit(int? id)
         {
             if (id == null)
@@ -71,22 +67,22 @@ namespace AmateurLeagueUI.Controllers
                 return NotFound();
             }
 
-            var league = LeagueManager.GetLeague(id.Value);
-            if (league == null)
+            var team = LeagueManager.GetTeamById(id.Value);
+            if (team == null)
             {
                 return NotFound();
             }
-            return View(league);
+            return View(team);
         }
 
-        // POST: Leagues/Edit/5
+        // POST: Teams/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, [Bind("LeagueId,LeagueName")] League league)
+        public IActionResult Edit(int id, IFormCollection data)
         {
-            if (id != league.LeagueId)
+            if (id != int.Parse(data["TeamId"]))
             {
                 return NotFound();
             }
@@ -95,13 +91,12 @@ namespace AmateurLeagueUI.Controllers
             {
                 try
                 {
-                    var leagueToUpdate = LeagueManager.GetLeague(league.LeagueId);
-                    leagueToUpdate.LeagueName = league.LeagueName;
-                    LeagueManager.UpdateLeague(leagueToUpdate);
+                    var teamToUpdate = LeagueManager.GetTeamById(id);
+                    teamToUpdate.TeamName = data["TeamName"];
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!LeagueExists(league.LeagueId))
+                    if (!TeamExists(int.Parse(data["TeamId"])))
                     {
                         return NotFound();
                     }
@@ -112,10 +107,10 @@ namespace AmateurLeagueUI.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(league);
+            return View();
         }
 
-        // GET: Leagues/Delete/5
+        // GET: Teams/Delete/5
         public IActionResult Delete(int? id)
         {
             if (id == null)
@@ -123,35 +118,37 @@ namespace AmateurLeagueUI.Controllers
                 return NotFound();
             }
 
-            var league = LeagueManager.GetLeague(id.Value);
-            if (league == null)
+            var team = LeagueManager.GetTeamById(id.Value);
+
+            if (team == null)
             {
                 return NotFound();
             }
 
-            return View(league);
+            return View(team);
         }
 
-        // POST: Leagues/Delete/5
+        // POST: Teams/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            LeagueManager.DeleteLeague(id);
+            LeagueManager.DeleteTeamById(id);
             return RedirectToAction(nameof(Index));
         }
 
-        private bool LeagueExists(int id)
+        private bool TeamExists(int id)
         {
-            return LeagueManager.IsLeagueExists(id);
+            return LeagueManager.IsTeamExist(id);
         }
 
-        private List<SelectListItem> GetSportListItems()
+        private List<SelectListItem> GetLeagueListItems()
         {
             var items = new List<SelectListItem>();
-            foreach (var sport in LeagueManager.GetAllSports().ToList())
+
+            foreach (var league in LeagueManager.GetAllLeagues().ToList())
             {
-                items.Add(new SelectListItem { Text = sport.DisplayName, Value = sport.SportId});
+                items.Add(new SelectListItem { Text = league.LeagueName, Value = league.LeagueId.ToString() });
             }
 
             return items;

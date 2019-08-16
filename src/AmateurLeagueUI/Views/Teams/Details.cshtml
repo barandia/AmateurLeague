@@ -1,0 +1,36 @@
+﻿@model AmateurLeague.Entity.Team
+
+@{
+    ViewData["Title"] = "Team Details";
+}
+
+<h1>Team Details</h1>
+
+<div>
+    <h4>Team</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            Team Name
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TeamName)
+        </dd>
+        <dt class="col-sm-2">
+            League
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.League.LeagueName)
+        </dd>
+        <dt class="col-sm-2">
+            Sport
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.League.Sport.DisplayName)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.TeamId">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

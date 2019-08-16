@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace AmateurLeague.Entity
@@ -7,7 +8,7 @@ namespace AmateurLeague.Entity
     /**
      * A league can have many teams
      */
-    //[JsonObject(IsReference = true)]
+    [DataContract(IsReference = true)]
     public class League
     {
         public int LeagueId { get; set; }

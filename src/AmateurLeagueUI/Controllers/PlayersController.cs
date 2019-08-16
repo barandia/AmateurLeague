@@ -1,34 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using AmateurLeague;
 using AmateurLeague.Entity;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+using System;
 
 namespace AmateurLeagueUI.Controllers
 {
-    [Authorize]
-    public class LeaguesController : Controller
+    public class PlayersController : Controller
     {
         private LeagueManager LeagueManager;
 
-        public LeaguesController(LeagueManager leagueManager)
+        public PlayersController(LeagueManager leagueManager)
         {
             LeagueManager = leagueManager;
         }
 
-        // GET: Leagues
+        // GET: Players
         public IActionResult Index()
         {
-            return View(LeagueManager.GetAllLeagues());
+            return View(LeagueManager.GetAllPlayers());
         }
 
-        // GET: Leagues/Details/5
+        // GET: Players/Details/5
         public IActionResult Details(int? id)
         {
             if (id == null)
@@ -36,57 +31,61 @@ namespace AmateurLeagueUI.Controllers
                 return NotFound();
             }
 
-            var league = LeagueManager.GetLeague(id.Value);
-            if (league == null)
+            var player = LeagueManager.GetPlayer(id.Value);
+            if (player == null)
             {
                 return NotFound();
             }
 
-            return View(league);
+            return View(player);
         }
 
-        // GET: Leagues/Create
+        // GET: Players/Create
         public IActionResult Create()
         {
-            ViewBag.SportList = GetSportListItems();
+            ViewBag.DateNow = DateTime.Now;
             return View();
         }
 
-        // POST: Leagues/Create
+        // POST: Players/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(IFormCollection data)
+        public IActionResult Create([Bind("EmailAddress,FirstName,LastName,Gender,DateOfBirth")] Player player)
         {
-            LeagueManager.CreateLeague(data["LeagueName"], LeagueManager.GetSportById(data["SportId"]));
-            return RedirectToAction(nameof(Index));
+            if (ModelState.IsValid)
+            {
+                LeagueManager.CreatePlayer(player.EmailAddress, player.FirstName, player.LastName, player.Gender, player.DateOfBirth);
+                return RedirectToAction(nameof(Index));
+            }
+            return View(player);
         }
 
-        // GET: Leagues/Edit/5
-        public IActionResult Edit(int? id)
+        // GET: Players/Edit/5
+        public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var league = LeagueManager.GetLeague(id.Value);
-            if (league == null)
+            var player = LeagueManager.GetPlayer(id.Value);
+            if (player == null)
             {
                 return NotFound();
             }
-            return View(league);
+            return View(player);
         }
 
-        // POST: Leagues/Edit/5
+        // POST: Players/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, [Bind("LeagueId,LeagueName")] League league)
+        public async Task<IActionResult> Edit(int id, [Bind("PlayerId,EmailAddress,FirstName,LastName,Gender,DateOfBirth")] Player player)
         {
-            if (id != league.LeagueId)
+            if (id != player.PlayerId)
             {
                 return NotFound();
             }
@@ -95,13 +94,18 @@ namespace AmateurLeagueUI.Controllers
             {
                 try
                 {
-                    var leagueToUpdate = LeagueManager.GetLeague(league.LeagueId);
-                    leagueToUpdate.LeagueName = league.LeagueName;
-                    LeagueManager.UpdateLeague(leagueToUpdate);
+                    var playerToUpdate = LeagueManager.GetPlayer(id);
+                    playerToUpdate.EmailAddress = player.EmailAddress;
+                    playerToUpdate.FirstName = player.FirstName;
+                    playerToUpdate.LastName = player.LastName;
+                    playerToUpdate.Gender = player.Gender;
+                    playerToUpdate.DateOfBirth = player.DateOfBirth;
+
+                    LeagueManager.UpdatePlayer(playerToUpdate);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!LeagueExists(league.LeagueId))
+                    if (!PlayerExists(player.PlayerId))
                     {
                         return NotFound();
                     }
@@ -112,10 +116,10 @@ namespace AmateurLeagueUI.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(league);
+            return View(player);
         }
 
-        // GET: Leagues/Delete/5
+        // GET: Players/Delete/5
         public IActionResult Delete(int? id)
         {
             if (id == null)
@@ -123,38 +127,27 @@ namespace AmateurLeagueUI.Controllers
                 return NotFound();
             }
 
-            var league = LeagueManager.GetLeague(id.Value);
-            if (league == null)
+            var player = LeagueManager.GetPlayer(id.Value);
+            if (player == null)
             {
                 return NotFound();
             }
 
-            return View(league);
+            return View(player);
         }
 
-        // POST: Leagues/Delete/5
+        // POST: Players/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             LeagueManager.DeleteLeague(id);
             return RedirectToAction(nameof(Index));
         }
 
-        private bool LeagueExists(int id)
+        private bool PlayerExists(int id)
         {
-            return LeagueManager.IsLeagueExists(id);
-        }
-
-        private List<SelectListItem> GetSportListItems()
-        {
-            var items = new List<SelectListItem>();
-            foreach (var sport in LeagueManager.GetAllSports().ToList())
-            {
-                items.Add(new SelectListItem { Text = sport.DisplayName, Value = sport.SportId});
-            }
-
-            return items;
+            return LeagueManager.IsPlayerExists(id);
         }
     }
 }

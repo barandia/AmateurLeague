@@ -1,6 +1,5 @@
 ﻿
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 using System.Text;
@@ -30,6 +29,15 @@ namespace AmateurLeague.Entity
         }
 
         public ICollection<League> Leagues { get; set; }
+
+        [NotMapped]
+        public string DisplayName
+        {
+            get
+            {
+                return $"{SportName} - {GenderType}";
+            }
+        }
 
         public override string ToString()
         {
